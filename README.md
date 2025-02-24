@@ -44,6 +44,7 @@ The first major milestones for this project are outlined below:
 :o: **Debug Tools** – Logging and profiling utilities (console, file).  
 :o: **Memory Utility** – Basic utilities for better memory management.   
 :o: **Window Management** – Cross-Platform window management through GLFW.   
+:o: **Rendering** – Basic rendering interface with support for UI rendering.  
 :o: **Input Management** – Basic I/O support for common devices.   
 :o: **Events** – Various interfaces for handling application events (publisher/subscriber, listeners, event bus, etc.).   
 :o: **Resource Management** – Custom interface for managing application data.   
