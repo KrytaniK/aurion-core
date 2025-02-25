@@ -3,7 +3,7 @@
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.4.0
+  win: circleci/windows@5.1.0
 
 workflows:
   setup-build-test:
