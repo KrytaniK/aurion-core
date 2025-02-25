@@ -12,6 +12,9 @@ workflows:
       - build:
           requires:
             - setup
+      - compile:
+          requires:
+            - build
 
 jobs:
   setup:
@@ -31,7 +34,13 @@ jobs:
       - run:
           name: Build VS Project Files
           command: |
-            dir
             cd config/Windows
-            dir
             & ".\generate_projects.bat"
+  compile:
+    executor: win/default
+    steps:
+      - checkout
+      - run:
+          name: Compile VS Project
+          command: |
+            msbuild AurionCore.sln \p:Configuration:Dist \m
