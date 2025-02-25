@@ -37,9 +37,7 @@ jobs:
             cd config/Windows
             & ".\generate_projects.bat"
       - persist_to_workspace:
-          root: .
-          paths:
-            - bin/
+          root: /
   compile:
     executor: win/default
     steps:
