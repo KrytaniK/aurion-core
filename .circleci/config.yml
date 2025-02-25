@@ -2,17 +2,26 @@
 # See: https://circleci.com/docs/configuration-reference
 version: 2.1
 
-jobs:
-  build:
+executors:
+  windows-executor:
     machine:
-      image: windows-default
-    resource_class: windows.medium
+      image: "windows-server-2022" # Use latest Windows image
+    shell: powershell.exe # Use PowerShell for commands
+
+jobs:
+  setup:
+    executor: windows-executor
     steps:
       - checkout
-      - run: Write-Host 'Hello, Windows'
+      - run:
+          name: Install Dependencies
+          command: |
+            choco install git -y
+            choco install premake5 -y  # Ensure Premake is installed
+            choco install gh -y  # GitHub CLI for releases
 
 workflows:
   version: 2.1
   build-workflow:
     jobs:
-      - build
+      - setup
