@@ -2,26 +2,16 @@
 # See: https://circleci.com/docs/configuration-reference
 version: 2.1
 
-executors:
-  windows-executor:
+jobs:
+  build:
     machine:
       image: windows-default
-    shell: powershell.exe
-
-jobs:
-  setup:
-    machine: windows-default
     steps:
       - checkout
-      - run:
-          name: Test Setup Job
-          command: |
-            choco install git -y
-            choco install premake5 -y
-            choco install gh -y
+      - run: Write-Host 'Hello, Windows'
 
 workflows:
   version: 2.1
   build-workflow:
     jobs:
-      - setup
+      - build
