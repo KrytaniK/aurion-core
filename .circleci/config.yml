@@ -31,5 +31,4 @@ jobs:
       - run:
           name: Build VS Project Files
           command: |
-            cd config/Windows
-            generate_projects.bat
+            call third_party\premake\premake5.exe vs2022
