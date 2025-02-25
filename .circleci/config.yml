@@ -31,5 +31,7 @@ jobs:
       - run:
           name: Build VS Project Files
           command: |
+            dir
             cd config/Windows
+            dir
             & generate_projects.bat
