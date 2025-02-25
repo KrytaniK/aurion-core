@@ -38,6 +38,8 @@ jobs:
             & ".\generate_projects.bat"
       - persist_to_workspace:
           root: /
+          paths:
+            - ./
   compile:
     executor: win/default
     steps:
