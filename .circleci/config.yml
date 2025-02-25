@@ -43,4 +43,4 @@ jobs:
       - run:
           name: Compile VS Project
           command: |
-            msbuild AurionCore.sln \p:Configuration:Dist \m
+            msbuild AurionCore.sln /p:Configuration:Dist
