@@ -34,4 +34,4 @@ jobs:
             dir
             cd config/Windows
             dir
-            & "generate_projects.bat"
+            & ".\generate_projects.bat"
