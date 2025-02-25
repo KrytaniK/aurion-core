@@ -14,34 +14,14 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Install Dependencies
-        command: |
-          choco install git -y
-          choco install premake5 -y  # Ensure Premake is installed
-          choco install gh -y  # GitHub CLI for releases
-  build:
-    executor: windows-executor
-    steps:
-      - checkout
-      - run:
-          name: Generate Build Files
+          name: Test Setup Job
           command: |
-            cd config\Windows
-            generate_projects.bat
-      - run:
-          name: Compile Project
-          command: |
-            msbuild AurionCore.sln /p:Configuration=Dist /m
-      - persist_to_workspace:
-          root: .
-          paths:
-            - bin/
+            choco install git -y
+            choco install premake5 -y
+            choco install gh -y
 
 workflows:
   version: 2.1
   build-workflow:
     jobs:
       - setup
-      - build:
-          requires:
-            - setup
