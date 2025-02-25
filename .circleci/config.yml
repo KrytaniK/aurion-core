@@ -19,16 +19,16 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Install Dependencies
-        command: |
-          choco install git -y
-          choco install premake5 --pre -y
-          choco install gh -y
+          name: Install Dependencies
+          command: |
+            choco install git -y
+            choco install premake5 --pre -y
+            choco install gh -y
   build:
     executor: win/default
     steps:
       - checkout
       - run:
-        name: Build VS Project Files
-        command: |
-          dir
+          name: Build VS Project Files
+          command: |
+            dir
