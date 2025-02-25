@@ -6,9 +6,12 @@ orbs:
   win: circleci/windows@2.4.0
 
 workflows:
-  hello-world:
+  setup-build-test:
     jobs:
       - setup
+      - build:
+        requires:
+          - setup
 
 jobs:
   setup:
@@ -19,5 +22,14 @@ jobs:
           name: Install Dependencies
           command: |
             choco install git -y
-            choco install premake5 -y  # Ensure Premake is installed
+            choco install premake5 --pre -y  # Ensure Premake is installed
             choco install gh -y  # GitHub CLI for releases
+  build:
+    executor: win/default
+    steps:
+      - checkout
+      - run:
+        name: Build VS Project Files
+        command: |
+          cd config/Windows
+          generate_projects.bat
