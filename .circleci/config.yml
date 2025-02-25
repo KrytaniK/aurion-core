@@ -43,4 +43,5 @@ jobs:
       - run:
           name: Compile VS Project
           command: |
+            dir
             msbuild "AurionCore.sln" /p:Configuration=Dist
