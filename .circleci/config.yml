@@ -43,7 +43,8 @@ jobs:
   compile:
     executor: win/default
     steps:
-      - checkout
+      - attach_workspace:
+          at: /
       - run:
           name: Compile VS Project
           command: |
