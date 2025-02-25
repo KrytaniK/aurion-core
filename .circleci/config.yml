@@ -19,11 +19,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Dependencies
-          command: |
-            choco install git -y
-            choco install premake5 --pre -y  # Ensure Premake is installed
-            choco install gh -y  # GitHub CLI for releases
+        name: Install Dependencies
+        command: |
+          choco install git -y
+          choco install premake5 --pre -y
+          choco install gh -y
   build:
     executor: win/default
     steps:
@@ -31,5 +31,4 @@ jobs:
       - run:
         name: Build VS Project Files
         command: |
-          cd config/Windows
-          generate_projects.bat
+          dir
