@@ -9,7 +9,7 @@ workspace "AurionCore"
 
 -- Project Declaration
 project "AurionCore"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++20"
     staticruntime "Off"

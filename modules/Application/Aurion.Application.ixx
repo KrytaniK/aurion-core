@@ -1,6 +1,5 @@
 module;
 
-#include <string>
 #include <memory>
 
 export module Aurion.Application;
