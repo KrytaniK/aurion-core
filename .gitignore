@@ -12,6 +12,7 @@
 
 # Project Files
 *.vcxproj
+*.filters
 
 # User-specific files
 *.rsuser

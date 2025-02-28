@@ -1,19 +1,18 @@
 module;
 
-#include <memory>
+#include "../../macros/AurionExport.h"
 
 export module Aurion.Application;
 
+import <memory>;
+
 export namespace Aurion
 {
-	class IApplication
+	class AURION_API IApplication
 	{
 	public:
 		virtual ~IApplication() = default;
 
 		virtual void StartAndRun() = 0;
 	};
-
-	// Overridden by CLIENT implementations.
-	std::unique_ptr<IApplication> CreateApplication();
 }

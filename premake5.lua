@@ -9,32 +9,41 @@ workspace "AurionCore"
 
 -- Project Declaration
 project "AurionCore"
-    kind "StaticLib"
+    kind "SharedLib"
     language "C++"
     cppdialect "C++20"
     staticruntime "Off"
 
+    -- Build Directories
     targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}")
 
+    -- C++ Module Support
     allmodulespublic "On"
     scanformoduledependencies "true"
 
-    files { "modules/**.ixx", "src/**.cpp" }
+    -- File Locations
+    files { "macros/**.h", "modules/**.ixx", "src/**.cpp" } 
 
+    -- Include Directories
     includedirs {}
 
+    -- Library Directories 
     libdirs {}
 
+    -- Link Directories
     links {}
 
-    -- Platform Filters
+    -- Global Project defines
+    defines { "AURION_DLL" }
+
+    -- Platform (OS) Filters
     filter "system:windows"
 		systemversion "latest"
 
         defines { "AURION_PLATFORM_WINDOWS" }
 
-    -- Configuration Filters
+    -- Build Configuration Filters
     filter "configurations:Debug"
         runtime "Debug"
         symbols "On"
