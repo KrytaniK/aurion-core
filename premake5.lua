@@ -7,7 +7,7 @@ workspace "AurionCore"
 
     outputdir = "%{cfg.buildcfg}_%{cfg.system}_%{cfg.architecture}"
 
--- Project Declaration
+-- Core Project Declaration
 project "AurionCore"
     kind "SharedLib"
     language "C++"
@@ -23,7 +23,7 @@ project "AurionCore"
     scanformoduledependencies "true"
 
     -- File Locations
-    files { "macros/**.h", "modules/**.ixx", "src/**.cpp" } 
+    files { "/**.h", "/**.ixx", "/**.cpp" } 
 
     -- Include Directories
     includedirs {}
@@ -63,3 +63,57 @@ project "AurionCore"
         optimize "On"
 
         links {}
+
+-- Function to scan and generate projects for each plugin in the SDK
+function GeneratePluginProjects()
+    local pluginDir = "plugins/"
+    local pluginFolders = os.matchdirs(pluginDir .. "*")
+
+    for _, folder in ipairs(pluginFolders) do
+        local pluginName = path.getname(folder)
+
+        print("Adding Project: " .. pluginName .. "Plugin")
+
+        project(pluginName .. "Plugin")
+            kind "SharedLib"
+            language "C++"
+            cppdialect "C++20"
+            staticruntime "Off"
+            location(folder)
+
+        -- Build Directories
+        targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/" .. pluginName)
+        objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/" .. pluginName)
+
+        -- Files types to compile
+        files { folder .. "modules/**.ixx", folder .. "src/**.cpp" }
+
+        -- Directories to compile from
+        includedirs { "modules", "src" }
+
+        -- Library linkage
+        links { "AurionCore" }
+
+        -- Platform (OS) Filters
+        filter "system:windows"
+		    systemversion "latest"
+
+            defines { "AURION_PLATFORM_WINDOWS" }
+
+        -- Build Configuration Filters
+        filter "configurations:Debug"
+            runtime "Debug"
+            symbols "On"
+
+        filter "configurations:Release"
+            runtime "Release"
+            optimize "On"
+
+        filter "configurations:Dist"
+            runtime "Release"
+            optimize "On"
+    end
+end
+
+-- Automatically create plugin projects
+GeneratePluginProjects()
