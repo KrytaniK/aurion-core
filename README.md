@@ -39,7 +39,7 @@
 
 The first major milestones for this project are outlined below:
 
-:o: **Plugin-Based Architecture** – Extendable and overwritable functionality through configurable plugins.  
+:heavy_check_mark: **Plugin-Based Architecture** – Extendable and overwritable functionality through configurable plugins.  
 :o: **Custom Entry Point** – Customizable application entry points.   
 :o: **Debug Tools** – Logging and profiling utilities (console, file).  
 :o: **Memory Utility** – Basic utilities for better memory management.   
@@ -47,7 +47,6 @@ The first major milestones for this project are outlined below:
 :o: **Rendering** – Basic rendering interface with support for UI rendering.  
 :o: **Input Management** – Basic I/O support for common devices.   
 :o: **Events** – Various interfaces for handling application events (publisher/subscriber, listeners, event bus, etc.).   
-:o: **Resource Management** – Custom interface for managing application data.   
 :o: **File System** – A streamlined way to handle files.   
 
 ### **Project Goals**
