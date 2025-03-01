@@ -38,6 +38,7 @@ project "AurionCore"
     defines { "AURION_DLL" }
 
     postbuildcommands {
+        "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/Sandbox",
         "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
     }
 
@@ -107,7 +108,8 @@ function GeneratePluginProjects()
             defines { "AURION_DLL" }
 
             postbuildcommands {
-                "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/plugins/" .. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins"
+                "{MKDIR} %{wks.location}/Sandbox/plugins",
+                "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/plugins/" .. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/"
             }
 
             -- Platform (OS) Filters
