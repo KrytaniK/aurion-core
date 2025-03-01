@@ -96,13 +96,37 @@ function GeneratePluginProjects()
             objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/plugins/" .. pluginName)
 
             -- Files types to compile
-            files { folder .. "/modules/**.ixx", folder .. "/src/**.cpp" }
+            files { folder .. "/core/**.ixx", folder .. "/core/**.cpp" }
 
-            -- Directories to include
-            includedirs { "%{wks.location}/modules", "%{wks.location}/src" }
+            -- Retrieve all plugin dependencies
+            pluginIncludeDirs = { "%{wks.location}/modules", "%{wks.location}/src" }
+            pluginLibDirs = {}
+            pluginLinks = { "AurionCore" }
 
-            -- Library linkage
-            links { "AurionCore" }
+            -- Subdirectories in the 'third_party' directory indicate a dependency
+            print("[" .. pluginName .. "] Checking for dependencies...")
+            for _, depFolder in ipairs(os.matchdirs(folder .. "/third_party/".. "*")) do
+                print("-- Dependency Found: " .. path.getname(depFolder))
+                -- Only two subdirectories should exist within the dependency directory:
+                --  /include - Header files for the dependency
+                --  /lib - Library files for the dependency
+                for _, depSubfolder in ipairs(os.matchdirs(depFolder .. "/*")) do
+                    if path.getname(depSubfolder) == "include" then
+                        print("---- Include Directory Found!")
+                        table.insert(pluginIncludeDirs, depFolder .. "/include")
+                    end
+                    if path.getname(depSubfolder) == "lib" then
+                        print("---- Library folder found!")
+                        table.insert(pluginLibDirs, depFolder .. "/lib")
+                        table.insert(pluginLinks, depFolder .. "/lib/*.lib")
+                    end
+                end
+            end
+
+            -- Map Plugin Dependencies
+            includedirs(pluginIncludeDirs)
+            libdirs(pluginLibDirs)
+            links(pluginLinks)
 
             -- Global project defins
             defines { "AURION_DLL" }
@@ -180,8 +204,8 @@ project "Sandbox"
             table.insert(postBuildCmds, "{COPY} %{wks.location}/build/bin/" .. outputdir .. "/plugins/".. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/")
         end
 
--- Apply all collected post-build commands
-postbuildcommands(postBuildCmds)
+        -- Apply all collected post-build commands
+        postbuildcommands(postBuildCmds)
 
     -- Build Configuration Filters
     filter "configurations:Debug"
