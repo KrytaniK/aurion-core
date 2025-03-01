@@ -1,3 +1,7 @@
+module;
+
+#include "../../macros/AurionExport.h"
+
 export module Aurion.Plugin:WindowsLoader;
 
 #ifdef AURION_PLATFORM_WINDOWS
@@ -8,7 +12,7 @@ import :Loader;
 
 export namespace Aurion
 {
-	class WindowsPluginLoader : public IPluginLoader
+	class AURION_API WindowsPluginLoader : public IPluginLoader
 	{
 	public:
 		WindowsPluginLoader(const size_t& plugin_count);
@@ -17,7 +21,7 @@ export namespace Aurion
 		// Inherited via IPluginLoader
 		IPlugin* LoadPlugin(const char* source) override final;
 
-		void UnloadPlugin(const IPlugin* plugin) override final;
+		void UnloadPlugin(IPlugin* plugin) override final;
 
 	private:
 		size_t m_max_plugin_count;
