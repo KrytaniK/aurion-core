@@ -1,6 +1,6 @@
 module;
 
-#include "../../macros/AurionExport.h"
+#include <macros/AurionExport.h>
 
 #include <cstdint>
 
@@ -15,7 +15,7 @@ export namespace Aurion
 		WINDOW_MODE_WINDOWED = 0x00,
 		WINDOW_MODE_FULLSCREEN_EXCLUSIVE = 0x01,
 		WINDOW_MODE_FULLSCREEN_BORDERLESS = 0x02,
-	};
+	} WindowMode;
 
 	struct AURION_API WindowConfig
 	{
@@ -79,6 +79,8 @@ export namespace Aurion
 		virtual void* GetNativeHandle() = 0;
 
 		virtual const WindowProperties& GetProperties() const = 0;
+
+		virtual bool IsOpen() = 0;
 		
 		virtual bool IsFullscreen() = 0;
 	};
@@ -86,6 +88,6 @@ export namespace Aurion
 	struct AURION_API WindowHandle
 	{
 		uint64_t id = (uint64_t)(-1);
-		const IWindow* window = nullptr;
+		IWindow* window = nullptr;
 	};
 }

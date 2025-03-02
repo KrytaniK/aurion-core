@@ -7,80 +7,85 @@ workspace "AurionCore"
 
     outputdir = "%{cfg.buildcfg}_%{cfg.system}_%{cfg.architecture}"
 
--- Core Project Declaration
-project "AurionCore"
-    kind "SharedLib"
-    language "C++"
-    cppdialect "C++20"
-    staticruntime "Off"
+-- Function to generate core solution
+function GenerateCoreSolution()
+    print("Generating Solution: AurionCore")
 
-    -- Build Directories
-    targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}")
+    -- Core Project Declaration
+    project "AurionCore"
+        kind "SharedLib"
+        language "C++"
+        cppdialect "C++20"
+        staticruntime "Off"
 
-    -- C++ Module Support
-    allmodulespublic "On"
-    scanformoduledependencies "true"
+        -- Build Directories
+        targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
+        objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}")
 
-    -- File Locations
-    files { "macros/**.h", "modules/**.ixx", "src/**.cpp" } 
+        -- C++ Module Support
+        allmodulespublic "On"
+        scanformoduledependencies "true"
 
-    -- Include Directories
-    includedirs {}
+        -- File Locations
+        files { "core/**.h", "core/**.ixx", "core/**.cpp" } 
 
-    -- Library Directories 
-    libdirs {}
+        -- Include Directories
+        includedirs { "core" }
 
-    -- Link Directories
-    links {}
+        -- Library Directories 
+        libdirs {}
 
-    -- Global Project defines
-    defines { "AURION_DLL" }
-
-    postbuildcommands {
-        "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/Sandbox",
-        "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
-    }
-
-    -- Platform (OS) Filters
-    filter "system:windows"
-		systemversion "latest"
-
-        defines { "AURION_PLATFORM_WINDOWS" }
-
-    -- Build Configuration Filters
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "On"
-
-        defines { "AURION_CORE_DEBUG" }
-
+        -- Link Directories
         links {}
 
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "On"
+        -- Global Project defines
+        defines { "AURION_DLL" }
 
-        links {}
+        postbuildcommands {
+            "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/Sandbox",
+            "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
+        }
 
-    filter "configurations:Dist"
-        runtime "Release"
-        optimize "On"
+        -- Platform (OS) Filters
+        filter "system:windows"
+		    systemversion "latest"
 
-        links {}
+            defines { "AURION_PLATFORM_WINDOWS" }
 
-pluginProjects = {}
-pluginNames = {}
+        -- Build Configuration Filters
+        filter "configurations:Debug"
+            runtime "Debug"
+            symbols "On"
+
+            defines { "AURION_CORE_DEBUG" }
+
+            links {}
+
+        filter "configurations:Release"
+            runtime "Release"
+            optimize "On"
+
+            links {}
+
+        filter "configurations:Dist"
+            runtime "Release"
+            optimize "On"
+
+            links {}
+end
 
 -- Function to scan and generate projects for each plugin in the SDK
 function GeneratePluginProjects()
+    local projects = {}
+    local names = {}
+
     local pluginDir = "plugins/"
     local pluginFolders = os.matchdirs(pluginDir .. "*")
 
     for _, folder in ipairs(pluginFolders) do
         local pluginName = path.getname(folder)
 
-        print("Adding Project: " .. pluginName .. "Plugin")
+        print("[Premake5] Adding Project: " .. pluginName .. "Plugin")
 
         project(pluginName .. "Plugin")
             kind "SharedLib"
@@ -99,42 +104,49 @@ function GeneratePluginProjects()
             files { folder .. "/core/**.ixx", folder .. "/core/**.cpp" }
 
             -- Retrieve all plugin dependencies
-            pluginIncludeDirs = { "%{wks.location}/modules", "%{wks.location}/src" }
+            pluginIncludeDirs = { "%{wks.location}/core" }
             pluginLibDirs = {}
             pluginLinks = { "AurionCore" }
 
             -- Subdirectories in the 'third_party' directory indicate a dependency
-            print("[" .. pluginName .. "] Checking for dependencies...")
+            print("[Premake5] -- Checking for dependencies...")
             for _, depFolder in ipairs(os.matchdirs(folder .. "/third_party/".. "*")) do
-                print("-- Dependency Found: " .. path.getname(depFolder))
+                print("[Premake5] ---- Dependency Found: " .. path.getname(depFolder))
                 -- Only two subdirectories should exist within the dependency directory:
                 --  /include - Header files for the dependency
                 --  /lib - Library files for the dependency
                 for _, depSubfolder in ipairs(os.matchdirs(depFolder .. "/*")) do
                     if path.getname(depSubfolder) == "include" then
-                        print("---- Include Directory Found!")
+                        print("[Premake5] ------ Include Directory Found!")
                         table.insert(pluginIncludeDirs, depFolder .. "/include")
                     end
                     if path.getname(depSubfolder) == "lib" then
-                        print("---- Library folder found!")
+                        print("[Premake5] ------ Library folder found!")
                         table.insert(pluginLibDirs, depFolder .. "/lib")
                         table.insert(pluginLinks, depFolder .. "/lib/*.lib")
                     end
                 end
             end
 
+            print("[Premake5] Linking plugin dependencies...")
             -- Map Plugin Dependencies
             includedirs(pluginIncludeDirs)
             libdirs(pluginLibDirs)
             links(pluginLinks)
 
-            -- Global project defins
+            print("[Premake5] Defining global macros...")
+
+            -- Global project defines
             defines { "AURION_DLL" }
+
+            print("[Premake5] Setting post-build commands...")
 
             postbuildcommands {
                 "{MKDIR} %{wks.location}/Sandbox/plugins",
                 "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/plugins/" .. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/"
             }
+
+            print("[Premake5] Adding filters...")
 
             -- Platform (OS) Filters
             filter "system:windows"
@@ -156,66 +168,84 @@ function GeneratePluginProjects()
                 optimize "On"
         
             -- Attach this project to the table for linking with Sandbox
-            table.insert(pluginProjects, pluginName .. "Plugin")
-            table.insert(pluginNames, pluginName)
+            table.insert(projects, pluginName .. "Plugin")
+            table.insert(names, pluginName)
     end
+
+    print("[Premake5] Done!")
+
+    return projects, names
 end
 
--- Automatically create plugin projects
-GeneratePluginProjects()
+function GenerateSandboxProject(pluginProjects, pluginNames)
+    print("[Premake5] Adding Project: Sandbox")
 
--- Sandbox project for testing
-project "Sandbox"
-    kind "ConsoleApp"
-    language "C++"
-    cppdialect "C++20"
-    staticruntime "Off"
+    -- Sandbox project for testing
+    project "Sandbox"
+        kind "ConsoleApp"
+        language "C++"
+        cppdialect "C++20"
+        staticruntime "Off"
+
+        scanformoduledependencies "true"
     
+        location("Sandbox")
 
-    scanformoduledependencies "true"
-    
-    location("Sandbox")
+        targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
+	    objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}")
 
-    targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}")
+        files { "Sandbox/**.ixx", "Sandbox/**.h", "Sandbox/**.cpp" }
 
-    files { "Sandbox/**.ixx", "Sandbox/**.h", "Sandbox/**.cpp" }
+        includedirs { "%{wks.location}/core" }
 
-    includedirs { "%{wks.location}/modules", "%{wks.location}/src" }
+        print("[Premake5] Linking project dependencies...")
 
-    -- Link Core Framework
-    links { "AurionCore" }
+        -- Link Core Framework
+        links { "AurionCore" }
 
-    -- Link All plugins
-    for _, plugin in ipairs(pluginProjects) do
-        links { plugin }
-    end
-
-    -- Platform (OS) Filters
-    filter "system:windows"
-		systemversion "latest"
-
-        defines { "AURION_PLATFORM_WINDOWS" }
-
-        postBuildCmds = {}
-
-        -- Add commands for copying plugin DLLs
-        for _, pluginName in ipairs(pluginNames) do
-            table.insert(postBuildCmds, "{COPY} %{wks.location}/build/bin/" .. outputdir .. "/plugins/".. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/")
+        -- Link All plugins
+        for _, plugin in ipairs(pluginProjects) do
+            links { plugin }
         end
 
-        -- Apply all collected post-build commands
-        postbuildcommands(postBuildCmds)
+        print("[Premake5] Adding filters...")
 
-    -- Build Configuration Filters
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "On"
+        -- Platform (OS) Filters
+        filter "system:windows"
+		    systemversion "latest"
 
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "On"
+            defines { "AURION_PLATFORM_WINDOWS" }
 
-    filter "configurations:Dist"
-        runtime "Release"
-        optimize "On"
+            postBuildCmds = {}
+
+            print("[Premake5] Applying Windows post-build commands...")
+
+            -- Add commands for copying plugin DLLs
+            for _, pluginName in ipairs(pluginNames) do
+                table.insert(postBuildCmds, "{COPY} %{wks.location}/build/bin/" .. outputdir .. "/plugins/".. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/")
+            end
+
+            -- Apply all collected post-build commands
+            postbuildcommands(postBuildCmds)
+
+        -- Build Configuration Filters
+        filter "configurations:Debug"
+            runtime "Debug"
+            symbols "On"
+
+        filter "configurations:Release"
+            runtime "Release"
+            optimize "On"
+
+        filter "configurations:Dist"
+            runtime "Release"
+            optimize "On"
+
+        print("[Premake5] Done!")
+end
+
+-- Generate Core solution
+GenerateCoreSolution()
+
+-- Generate sandbox testing project, linking all plugins
+GenerateSandboxProject(GeneratePluginProjects())

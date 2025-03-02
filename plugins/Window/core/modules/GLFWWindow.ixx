@@ -1,6 +1,6 @@
 module;
 
-#include <../macros/AurionExport.h>
+#include <macros/AurionExport.h>
 #include <GLFW/glfw3.h>
 
 export module Aurion.WindowPlugin:GLFWWindow;
@@ -46,6 +46,8 @@ export namespace Aurion
 		virtual void* GetNativeHandle() override;
 
 		virtual const WindowProperties& GetProperties() const override;
+
+		virtual bool IsOpen() override;
 
 		virtual bool IsFullscreen() override;
 

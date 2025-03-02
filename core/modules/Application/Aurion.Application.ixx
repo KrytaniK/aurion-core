@@ -1,6 +1,6 @@
 module;
 
-#include "../../macros/AurionExport.h"
+#include <macros/AurionExport.h>
 
 export module Aurion.Application;
 

@@ -76,7 +76,10 @@ namespace Aurion
 
 	void GLFWWindow::Update(float deltaTime)
 	{
+		if (!m_native_window)
+			return;
 
+		glfwPollEvents();
 	}
 
 	void GLFWWindow::SetTitle(const char* title)
@@ -250,6 +253,11 @@ namespace Aurion
 		return m_state;
 	}
 
+	bool GLFWWindow::IsOpen()
+	{
+		return m_native_window != nullptr;
+	}
+
 	bool GLFWWindow::IsFullscreen()
 	{
 		return m_state.mode == WINDOW_MODE_FULLSCREEN_EXCLUSIVE || m_state.mode == WINDOW_MODE_FULLSCREEN_BORDERLESS;
@@ -309,6 +317,14 @@ namespace Aurion
 
 	void GLFWWindow::SetGLFWCallbacks()
 	{
+		glfwSetWindowCloseCallback(m_native_window, [](GLFWwindow* window) {
+			GLFWWindow* _this = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
 
+			if (!_this || !_this->m_native_window)
+				return;
+
+			// Close the GLFWWindow wrapping object
+			_this->Close();
+		});
 	}
 }
