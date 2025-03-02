@@ -1,21 +1,31 @@
 module;
 
 #include "../../macros/AurionExport.h"
+
 #include <cstdint>
 
 export module Aurion.Window:Window;
 
+// TODO: Add Graphics API target to Window Config
+
 export namespace Aurion
 {
+	typedef enum AURION_API WindowMode
+	{
+		WINDOW_MODE_WINDOWED = 0x00,
+		WINDOW_MODE_FULLSCREEN_EXCLUSIVE = 0x01,
+		WINDOW_MODE_FULLSCREEN_BORDERLESS = 0x02,
+	};
+
 	struct AURION_API WindowConfig
 	{
 		const char* title = nullptr;
 		uint16_t width = 1280;
 		uint16_t height = 760;
-		bool fullscreen = false;
+		WindowMode windowMode = WINDOW_MODE_WINDOWED;
+		bool decorated = true;
 		bool resizable = true;
-		bool alwaysOnTop = false;
-		bool borderless = false;
+		// Has 2 bytes of 'padding'
 	};
 
 	struct AURION_API WindowProperties
@@ -23,16 +33,13 @@ export namespace Aurion
 		const char* title = nullptr;
 		uint16_t width = 1280;
 		uint16_t height = 760;
-		uint16_t xPos = 0;
-		uint16_t yPos = 0;
-		bool minimized = false;
-		bool focused = false;
-		bool fullscreen = false;
+		uint16_t xPos = 320;
+		uint16_t yPos = 320;
+		WindowMode mode = WINDOW_MODE_WINDOWED;
 		bool resizable = true;
-		bool visible = true;
-		bool alwaysOnTop = false;
-		bool vsyncEnabled = true;
-		bool borderless = false;
+		bool minimized = false;
+		bool maximized = false;
+		bool focused = true;
 	};
 
 	// Base interface for interacting with application 'windows'.
@@ -41,29 +48,44 @@ export namespace Aurion
 	public:
 		virtual ~IWindow() = default;
 
-		virtual void SetTitle(const char* title) = 0;
+		virtual void Open(const WindowConfig& config) = 0;
 
-		virtual uint16_t GetWidth() = 0;
-		virtual uint16_t GetHeight() = 0;
-
-		virtual void* GetNativeHandle() = 0;
-		virtual const WindowProperties& GetProperties() const = 0;
+		virtual void Close() = 0;
 
 		virtual void Update(float deltaTime = 0) = 0;
 
-		virtual void SetFullscreen(bool fullscreen) = 0;
-		virtual bool IsFullscreen() = 0;
+		virtual void SetTitle(const char* title) = 0;
+
+		virtual void SetMode(const WindowMode& mode) = 0;
 
 		virtual void Resize(const uint16_t& width, const uint16_t& height) = 0;
+
 		virtual void SetPos(const uint16_t& xPos, const uint16_t& yPos) = 0;
 
-		virtual bool SetMinimized(bool minimize) = 0;
-		virtual bool SetFocus(bool focused) = 0;
+		virtual bool Minimize() = 0;
+
+		virtual bool Maximize() = 0;
+
+		virtual bool Focus() = 0;
+
+		virtual bool ToggleDecoration() = 0;
+
+		virtual const char* GetTitle() = 0;
+
+		virtual uint16_t GetWidth() = 0;
+
+		virtual uint16_t GetHeight() = 0;
+
+		virtual void* GetNativeHandle() = 0;
+
+		virtual const WindowProperties& GetProperties() const = 0;
+		
+		virtual bool IsFullscreen() = 0;
 	};
 
 	struct AURION_API WindowHandle
 	{
-		uint16_t id; 
-		const IWindow* window;
+		uint64_t id = (uint64_t)(-1);
+		const IWindow* window = nullptr;
 	};
 }

@@ -21,6 +21,15 @@ namespace Aurion
 	{
 		std::cout << "[Window Plugin] Initializing!" << std::endl;
 
+		// Bail if the context is invalid
+		if (!context)
+			return;
+
+		// Cast the context to the relevant type (Expects WindowContext)
+		WindowContext* winCtx = static_cast<WindowContext*>(context);
+
+		// Set window driver
+		winCtx->SetDriver(&m_window_driver);
 	}
 
 	AURION_API IPlugin* CreatePlugin()

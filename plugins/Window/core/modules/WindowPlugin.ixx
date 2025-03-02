@@ -6,6 +6,8 @@ export module Aurion.WindowPlugin:Plugin;
 
 import Aurion.Plugin;
 
+import :GLFWDriver;
+
 export namespace Aurion
 {
 	class AURION_API WindowPlugin : public IPlugin
@@ -15,6 +17,9 @@ export namespace Aurion
 		virtual ~WindowPlugin() override final;
 
 		virtual void Initialize(IPluginContext* context) override final;
+
+	private:
+		GLFWDriver m_window_driver;
 	};
 
 	extern "C" AURION_API IPlugin* CreatePlugin();
