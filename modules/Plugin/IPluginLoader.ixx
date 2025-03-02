@@ -14,7 +14,7 @@ export namespace Aurion
 		virtual ~IPluginLoader() = default;
 
 		virtual IPlugin* LoadPlugin(const char* source) = 0;
-		virtual void UnloadPlugin(const IPlugin* plugin) = 0;
+		virtual void UnloadPlugin(IPlugin* plugin) = 0;
 	};
 
 	extern "C" AURION_API IPluginLoader* CreatePluginLoader(const size_t& plugin_count);

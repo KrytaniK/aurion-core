@@ -1,7 +1,7 @@
 -- Workspace Declarations
 workspace "AurionCore"
     architecture "x64"
-    startproject "AurionCore"
+    startproject "Sandbox"
 
     configurations { "Debug", "Release", "Dist"}
 
@@ -23,7 +23,7 @@ project "AurionCore"
     scanformoduledependencies "true"
 
     -- File Locations
-    files { "/**.h", "/**.ixx", "/**.cpp" } 
+    files { "macros/**.h", "modules/**.ixx", "src/**.cpp" } 
 
     -- Include Directories
     includedirs {}
@@ -36,6 +36,11 @@ project "AurionCore"
 
     -- Global Project defines
     defines { "AURION_DLL" }
+
+    postbuildcommands {
+        "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/Sandbox",
+        "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
+    }
 
     -- Platform (OS) Filters
     filter "system:windows"
@@ -64,6 +69,9 @@ project "AurionCore"
 
         links {}
 
+pluginProjects = {}
+pluginNames = {}
+
 -- Function to scan and generate projects for each plugin in the SDK
 function GeneratePluginProjects()
     local pluginDir = "plugins/"
@@ -81,39 +89,133 @@ function GeneratePluginProjects()
             staticruntime "Off"
             location(folder)
 
-        -- Build Directories
-        targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/" .. pluginName)
-        objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/" .. pluginName)
+            scanformoduledependencies "true"
 
-        -- Files types to compile
-        files { folder .. "modules/**.ixx", folder .. "src/**.cpp" }
+            -- Build Directories
+            targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/plugins/" .. pluginName)
+            objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/plugins/" .. pluginName)
 
-        -- Directories to compile from
-        includedirs { "modules", "src" }
+            -- Files types to compile
+            files { folder .. "/core/**.ixx", folder .. "/core/**.cpp" }
 
-        -- Library linkage
-        links { "AurionCore" }
+            -- Retrieve all plugin dependencies
+            pluginIncludeDirs = { "%{wks.location}/modules", "%{wks.location}/src" }
+            pluginLibDirs = {}
+            pluginLinks = { "AurionCore" }
 
-        -- Platform (OS) Filters
-        filter "system:windows"
-		    systemversion "latest"
+            -- Subdirectories in the 'third_party' directory indicate a dependency
+            print("[" .. pluginName .. "] Checking for dependencies...")
+            for _, depFolder in ipairs(os.matchdirs(folder .. "/third_party/".. "*")) do
+                print("-- Dependency Found: " .. path.getname(depFolder))
+                -- Only two subdirectories should exist within the dependency directory:
+                --  /include - Header files for the dependency
+                --  /lib - Library files for the dependency
+                for _, depSubfolder in ipairs(os.matchdirs(depFolder .. "/*")) do
+                    if path.getname(depSubfolder) == "include" then
+                        print("---- Include Directory Found!")
+                        table.insert(pluginIncludeDirs, depFolder .. "/include")
+                    end
+                    if path.getname(depSubfolder) == "lib" then
+                        print("---- Library folder found!")
+                        table.insert(pluginLibDirs, depFolder .. "/lib")
+                        table.insert(pluginLinks, depFolder .. "/lib/*.lib")
+                    end
+                end
+            end
 
-            defines { "AURION_PLATFORM_WINDOWS" }
+            -- Map Plugin Dependencies
+            includedirs(pluginIncludeDirs)
+            libdirs(pluginLibDirs)
+            links(pluginLinks)
 
-        -- Build Configuration Filters
-        filter "configurations:Debug"
-            runtime "Debug"
-            symbols "On"
+            -- Global project defins
+            defines { "AURION_DLL" }
 
-        filter "configurations:Release"
-            runtime "Release"
-            optimize "On"
+            postbuildcommands {
+                "{MKDIR} %{wks.location}/Sandbox/plugins",
+                "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/plugins/" .. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/"
+            }
 
-        filter "configurations:Dist"
-            runtime "Release"
-            optimize "On"
+            -- Platform (OS) Filters
+            filter "system:windows"
+                systemversion "latest"
+
+                defines { "AURION_PLATFORM_WINDOWS" }
+
+            -- Build Configuration Filters
+            filter "configurations:Debug"
+                runtime "Debug"
+                symbols "On"
+
+            filter "configurations:Release"
+                runtime "Release"
+                optimize "On"
+
+            filter "configurations:Dist"
+                runtime "Release"
+                optimize "On"
+        
+            -- Attach this project to the table for linking with Sandbox
+            table.insert(pluginProjects, pluginName .. "Plugin")
+            table.insert(pluginNames, pluginName)
     end
 end
 
 -- Automatically create plugin projects
 GeneratePluginProjects()
+
+-- Sandbox project for testing
+project "Sandbox"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "Off"
+    
+
+    scanformoduledependencies "true"
+    
+    location("Sandbox")
+
+    targetdir ("%{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("%{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}")
+
+    files { "Sandbox/**.ixx", "Sandbox/**.h", "Sandbox/**.cpp" }
+
+    includedirs { "%{wks.location}/modules", "%{wks.location}/src" }
+
+    -- Link Core Framework
+    links { "AurionCore" }
+
+    -- Link All plugins
+    for _, plugin in ipairs(pluginProjects) do
+        links { plugin }
+    end
+
+    -- Platform (OS) Filters
+    filter "system:windows"
+		systemversion "latest"
+
+        defines { "AURION_PLATFORM_WINDOWS" }
+
+        postBuildCmds = {}
+
+        -- Add commands for copying plugin DLLs
+        for _, pluginName in ipairs(pluginNames) do
+            table.insert(postBuildCmds, "{COPY} %{wks.location}/build/bin/" .. outputdir .. "/plugins/".. pluginName .. "/*.dll %{wks.location}/Sandbox/plugins/")
+        end
+
+        -- Apply all collected post-build commands
+        postbuildcommands(postBuildCmds)
+
+    -- Build Configuration Filters
+    filter "configurations:Debug"
+        runtime "Debug"
+        symbols "On"
+
+    filter "configurations:Release"
+        runtime "Release"
+        optimize "On"
+
+    filter "configurations:Dist"
+        runtime "Release"
+        optimize "On"
