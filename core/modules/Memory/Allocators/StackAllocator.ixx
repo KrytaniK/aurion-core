@@ -2,21 +2,21 @@ module;
 
 #include <macros/AurionExport.h>
 
-export module Aurion.Memory:LinearAllocator;
+export module Aurion.Memory:StackAllocator;
 
 import :Allocator;
 
 export namespace Aurion
 {
-	class AURION_API LinearAllocator : public IMemoryAllocator
+	class AURION_API StackAllocator : public IMemoryAllocator
 	{
 	public:
-		LinearAllocator(const size_t& size);
-		virtual ~LinearAllocator() override;
+		StackAllocator(const size_t& size);
+		virtual ~StackAllocator() override;
 
 		virtual void* Allocate(const size_t& size, const size_t& alignment = 16) override;
 
-		virtual void Free(void* ptr = nullptr) override; // Empty
+		virtual void Free(void* ptr = nullptr) override; // LIFO deallocation
 
 		virtual void Reset() override; // Reset state
 
