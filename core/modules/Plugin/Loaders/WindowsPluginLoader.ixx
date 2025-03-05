@@ -18,10 +18,9 @@ export namespace Aurion
 		WindowsPluginLoader(const size_t& plugin_count);
 		virtual ~WindowsPluginLoader() override final;
 
-		// Inherited via IPluginLoader
-		IPlugin* LoadPlugin(const char* source) override final;
+		virtual IPlugin* LoadPlugin(const char* source) override final;
 
-		void UnloadPlugin(IPlugin* plugin) override final;
+		virtual void UnloadPlugin(IPlugin* plugin) override final;
 
 	private:
 		size_t m_max_plugin_count;
