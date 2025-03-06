@@ -5,16 +5,44 @@ import Aurion.Memory;
 
 namespace Aurion
 {
-	StackAllocator::StackAllocator(const size_t& size)
-		: m_start(nullptr), m_offset(0), m_max_offset(size)
+	StackAllocator::StackAllocator()
+		: m_start(nullptr), m_offset(0), m_max_offset(0)
 	{
-		m_start = malloc(size);
+		
 	}
 
 	StackAllocator::~StackAllocator()
 	{
 		free(m_start);
 		m_start = nullptr;
+	}
+
+	StackAllocator::StackAllocator(StackAllocator&& other)
+	{
+		m_start = other.m_start;
+		m_offset = other.m_offset;
+		m_max_offset = other.m_max_offset;
+	}
+
+	StackAllocator& StackAllocator::operator=(StackAllocator&& other)
+	{
+		m_start = other.m_start;
+		m_offset = other.m_offset;
+		m_max_offset = other.m_max_offset;
+
+		return *this;
+	}
+
+	void StackAllocator::Initialize(const size_t& chunk_size, const size_t& chunk_count)
+	{
+		if (chunk_size == 0 || chunk_count == 0)
+			return;
+
+		// Set the max offset
+		m_max_offset = chunk_size * chunk_count;
+
+		// Use calloc to grab memory and initialize it to 0
+		m_start = calloc(chunk_count, chunk_size);
 	}
 
 	void* StackAllocator::Allocate(const size_t& size, const size_t& alignment)
@@ -52,7 +80,7 @@ namespace Aurion
 		// ptr parameter is ignored (LIFO)
 
 		// If the stack pointer hasn't moved, there'snothing to free
-		if (m_offset == 0)
+		if (!m_start || m_offset == 0)
 			return;
 
 		// Get pointer to the end of the last allocated block
@@ -67,6 +95,20 @@ namespace Aurion
 
 	void StackAllocator::Reset()
 	{
+		if (!m_start)
+			return;
+
 		m_offset = 0;
+	}
+
+	bool StackAllocator::IsMapped(void* ptr)
+	{
+		// Ensure the allocator has been initialized
+		if (!m_start)
+			return false;
+
+		// If the pointer is within the bounds of what's been allocated, then it has been
+		//	mapped.
+		return ((size_t)ptr >= (size_t)m_start) && ((size_t)ptr < ((size_t)m_start + m_offset));
 	}
 }
