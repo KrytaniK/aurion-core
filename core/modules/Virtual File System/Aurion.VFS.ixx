@@ -1,0 +1,4 @@
+export module Aurion.VFS;
+
+export import :Interface;
+export import :BaseImpl;

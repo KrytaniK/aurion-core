@@ -18,7 +18,7 @@ export namespace Aurion
 
 		void* Allocate();
 
-		virtual void Free(void* ptr = nullptr) override; // LIFO deallocation
+		virtual void Free(void* ptr = nullptr) override;
 
 		virtual void Reset() override; // Reset state
 

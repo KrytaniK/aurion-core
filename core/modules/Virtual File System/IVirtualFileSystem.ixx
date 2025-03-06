@@ -1,11 +1,8 @@
 module;
 
 #include <macros/AurionExport.h>
-#include <Windows.h>
 
-export module Aurion.FileSystem:VirtualInterface;
-
-import :File;
+export module Aurion.VFS:Interface;
 
 export namespace Aurion
 {

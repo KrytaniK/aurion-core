@@ -10,8 +10,7 @@ namespace Aurion
 		: m_start(nullptr), m_free_list(nullptr), m_chunk_count(chunk_count), m_chunk_size(chunk_size)
 	{
 		// Allocate the required amount of memory (minimum of 8 bytes per chunk for pointer storage)
-		//m_start = calloc(m_chunk_count, m_chunk_size);
-		m_start = malloc(m_chunk_count * m_chunk_size);
+		m_start = calloc(m_chunk_count, m_chunk_size);
 
 		// The free list begins at the start of the allocated memory
 		m_free_list = (void**)(m_start);
@@ -58,6 +57,7 @@ namespace Aurion
 
 	void PoolAllocator::Free(void* ptr)
 	{
+		// Bounds Check
 		if (ptr <= m_start || (size_t)ptr >= (size_t)m_start + (m_chunk_count * m_chunk_size))
 			return;
 
