@@ -20,28 +20,22 @@ export namespace Aurion
 
 		virtual bool DirExists(const char* path) = 0;
 
-		// File Ops
+		virtual FSHandle OpenFile(const char* path, const FSAccess& access) = 0;
 
-		virtual FSHandle GetFile(const char* path) = 0;
-
-		virtual FSAttributes GetFileAttributes(const char* path) = 0;
+		virtual void CloseFile(const FSHandle& handle) = 0;
 
 		virtual FSInfo GetFileInfo(const char* path) = 0;
 
+		virtual FSInfo GetDirInfo(const char* path) = 0;
+
 		virtual uint64_t GetFileSize(const char* path) = 0;
 
-		virtual void* ReadFile(const char* path) = 0;
-
-		virtual bool WriteFile(const char* path, void* buffer) = 0;
-
-		// Directory Ops
-
-		virtual FSHandle GetDirectory(const char* path) = 0;
-
-		virtual FSAttributes GetDirAttributes(const char* path) = 0;
-
-		virtual FSInfo GetDirectoryInfo(const char* path) = 0;
-
 		virtual uint64_t GetDirSize(const char* path) = 0;
+
+		// File Ops
+
+		virtual FSFileData Read(const char* path) = 0;
+
+		virtual bool Write(const char* path, void* buffer, const uint64_t& size, const bool& overwrite) = 0;
 	};
 }

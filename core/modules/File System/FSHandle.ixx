@@ -9,10 +9,5 @@ import :Info;
 
 export namespace Aurion
 {
-	struct AURION_API FSHandle
-	{
-		uint64_t system_handle;
-		FSInfo info;
-		FSAttributes attributes;
-	};
+	typedef AURION_API uint64_t FSHandle;
 }

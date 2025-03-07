@@ -94,6 +94,8 @@ function GeneratePluginProjects()
             staticruntime "Off"
             location(folder)
 
+            -- C++ Module Support
+            allmodulespublic "On"
             scanformoduledependencies "true"
 
             -- Build Directories
@@ -187,6 +189,8 @@ function GenerateSandboxProject(pluginProjects, pluginNames)
         cppdialect "C++20"
         staticruntime "Off"
 
+        -- C++ Module Support
+        allmodulespublic "On"
         scanformoduledependencies "true"
     
         location("Sandbox")
