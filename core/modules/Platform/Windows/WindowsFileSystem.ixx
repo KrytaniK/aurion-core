@@ -19,25 +19,30 @@ export namespace Aurion
 		WindowsFileSystem();
 		virtual ~WindowsFileSystem() override;
 
-		bool FileExists(const char* path) override;
+		virtual uint64_t GenerateHandle(const char* path, const bool& force_create) override;
 
-		bool DirExists(const char* path) override;
+		virtual FSFileHandle OpenFile(const char* path, const bool& force_create) override;
 
-		virtual FSHandle OpenFile(const char* path, const FSAccess& access) override;
+		virtual bool CloseFile(const uint64_t& handle) override;
 
-		virtual void CloseFile(const FSHandle& handle) override;
+		virtual void GetFileInfo(const char* path, FSFileInfo& out_info, const bool& force_close = true) override;
+		virtual void GetFileInfo(const char* path, FSFileInfo& out_info, const uint64_t& handle, const bool& force_close = true) override;
 
-		virtual FSInfo GetFileInfo(const char* path) override;
+		virtual void Read(const char* path, FSFileData* out_data) override;
+		virtual void Read(const uint64_t& handle, FSFileData* out_data) override;
 
-		virtual FSInfo GetDirInfo(const char* path) override;
+		virtual bool Write(const char* path, void* buffer, const size_t& size, const size_t& offset) override;
+		virtual bool Write(const uint64_t& handle, void* buffer, const size_t& size, const size_t& offset) override;
 
-		virtual uint64_t GetFileSize(const char* path) override;
+		virtual bool DirectoryExists(const char* path) override;
 
-		virtual uint64_t GetDirSize(const char* path) override;
+		virtual bool FileExists(const char* path) override;
 
-		FSFileData Read(const char* path) override;
+	private:
 
-		bool Write(const char* path, void* buffer, const uint64_t& size, const bool& overwrite) override;
+		virtual bool IsFilePath(const char* path) override;
+
+		virtual bool IsDirPath(const char* path) override;
 	};
 }
 
