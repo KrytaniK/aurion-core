@@ -1,5 +1,3 @@
-
-
 import Aurion.FileSystem;
 
 namespace Aurion

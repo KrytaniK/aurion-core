@@ -241,9 +241,16 @@ namespace Aurion
 			return false;
 
 		// Adjust file pointer
-		LARGE_INTEGER ptr_offset{};
-		ptr_offset.QuadPart = (ULONGLONG)offset;
-		SetFilePointer(handle, ptr_offset.LowPart, &ptr_offset.HighPart, FILE_BEGIN);
+		if (offset != -1)
+		{
+			LARGE_INTEGER ptr_offset{};
+			ptr_offset.QuadPart = (ULONGLONG)offset;
+			SetFilePointer(handle, ptr_offset.LowPart, &ptr_offset.HighPart, FILE_BEGIN);
+		}
+		else
+		{
+			SetFilePointer(handle, 1, 0, FILE_END);
+		}
 
 		uint8_t* data = (uint8_t*)buffer;
 		uint64_t remaining = size;
@@ -278,9 +285,17 @@ namespace Aurion
 			return false;
 
 		// Adjust file pointer
-		LARGE_INTEGER ptr_offset{};
-		ptr_offset.QuadPart = (ULONGLONG)offset;
-		SetFilePointer(system_handle, ptr_offset.LowPart, &ptr_offset.HighPart, FILE_BEGIN);
+		if (offset != -1)
+		{
+			LARGE_INTEGER ptr_offset{};
+			ptr_offset.QuadPart = (ULONGLONG)offset;
+			SetFilePointer(system_handle, ptr_offset.LowPart, &ptr_offset.HighPart, FILE_BEGIN);
+		}
+		else
+		{
+			SetFilePointer(system_handle, 0, 0, FILE_END);
+		}
+		
 
 		uint8_t* data = (uint8_t*)buffer;
 		uint64_t remaining = size;
@@ -302,8 +317,8 @@ namespace Aurion
 			remaining -= chunk_size;
 		}
 
-		// Reset file pointer to the beginning of the file
-		SetFilePointer(system_handle, 0, NULL, FILE_BEGIN);
+		// Reset file pointer to the end of the file
+		SetFilePointer(system_handle, 0, NULL, FILE_END);
 		return true;
 	}
 
