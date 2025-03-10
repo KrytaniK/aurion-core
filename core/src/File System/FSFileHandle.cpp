@@ -3,13 +3,13 @@ import Aurion.FileSystem;
 namespace Aurion
 {
 	FSFileHandle::FSFileHandle() 
-		: m_file_system(nullptr), m_path(nullptr), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(0)
+		: m_file_system(nullptr), m_path(nullptr), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(0), m_info({})
 	{
 
 	}
 
 	FSFileHandle::FSFileHandle(IFileSystem* fs, const char* path, const bool& force_create)
-		: m_file_system(fs), m_path(path), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(0)
+		: m_file_system(fs), m_path(path), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(0), m_info({})
 	{
 		this->Register(fs, path, force_create);
 	}
@@ -22,6 +22,10 @@ namespace Aurion
 			// Close the file handle if necessary
 			if (m_file_system && m_system_handle != 0)
 				m_file_system->CloseFile(m_system_handle);
+
+			// Free path buffer
+			if (m_path)
+				delete[] m_path;
 
 			// Free name buffer
 			if (m_info.name)
@@ -71,7 +75,7 @@ namespace Aurion
 		m_file_system = other.m_file_system;
 		m_path = other.m_path;
 		m_file_data = other.m_file_data;
-		m_reference_count = other.m_reference_count + 1;
+		m_reference_count = ++other.m_reference_count;
 		m_system_handle = other.m_system_handle;
 	}
 
@@ -80,7 +84,7 @@ namespace Aurion
 		m_file_system = other.m_file_system;
 		m_path = other.m_path;
 		m_file_data = other.m_file_data;
-		m_reference_count = other.m_reference_count + 1;
+		m_reference_count = ++other.m_reference_count;
 		m_system_handle = other.m_system_handle;
 
 		return *this;
@@ -94,17 +98,8 @@ namespace Aurion
 		// Get the system handle, force create the object if needed
 		m_system_handle = m_file_system->GenerateHandle(m_path, force_create);
 
-		// If the system handle was invalid, return
-		if (m_system_handle == (uint64_t)(-1))
-			return;
-
-		// Otherwise, retrieve file info (without closing the file)
+		// Get File Information
 		m_file_system->GetFileInfo(m_path, m_info, m_system_handle, false);
-
-		// and store file contents
-		m_file_system->Read(m_system_handle, m_file_data);
-
-		return;
 	}
 
 	void* FSFileHandle::Read()
@@ -113,18 +108,21 @@ namespace Aurion
 		if (!m_file_system)
 			return nullptr;
 
-		// If the data hasn't changed, return it
-		FSFileInfo info;
-		m_file_system->GetFileInfo(m_path, info, m_system_handle, false);
-		if (info.last_modified_time == m_info.last_modified_time)
-			return m_file_data->Get();
+		// If the data is valid and hasn't changed, return it. (Automatically revalidates file info)
+		if (m_file_data->Get())
+		{
+			uint64_t last_modified = m_info.last_modified_time;
+			m_file_system->GetFileInfo(m_path, m_info, m_system_handle, false);
+			if (last_modified == m_info.last_modified_time)
+				return m_file_data->Get();
+		}
 
 		// Otherwise, file data needs to be revalidated
 		delete m_file_data;
 		m_file_data = new FSFileData();
 
 		// Request OS file read and return the result.
-		m_file_system->Read(m_path, m_file_data);
+		m_file_system->Read(m_system_handle, m_file_data);
 		return m_file_data->Get();
 	}
 

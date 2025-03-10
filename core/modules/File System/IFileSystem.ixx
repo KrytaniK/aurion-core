@@ -6,8 +6,9 @@ module;
 
 export module Aurion.FileSystem:Interface;
 
+import :DirectoryHandle;
 import :FileHandle;
-import :Info;
+import :FileData;
 
 export namespace Aurion
 {
@@ -19,6 +20,10 @@ export namespace Aurion
 		virtual uint64_t GenerateHandle(const char* path, const bool& force_create) = 0;
 
 		virtual FSFileHandle OpenFile(const char* path, const bool& force_create) = 0;
+
+		virtual bool GetAllFiles(const char* path, FSFileHandle*& out_files, size_t& out_count) = 0;
+
+		virtual bool GetAllDirectories(const char* path, FSDirectoryHandle*& out_dirs, size_t& out_count) = 0;
 
 		virtual bool CloseFile(const uint64_t& handle) = 0;
 

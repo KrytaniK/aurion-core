@@ -21,12 +21,12 @@ namespace Aurion
 
 	uint64_t WindowsFileSystem::GenerateHandle(const char* path, const bool& force_create)
 	{
-		if (!IsFilePath(path))
-			return (uint64_t)(INVALID_HANDLE_VALUE);
+		DWORD access = IsFilePath(path) ? GENERIC_READ | GENERIC_WRITE : GENERIC_READ;
+		DWORD attributes = IsFilePath(path) ? FILE_ATTRIBUTE_NORMAL : FILE_ATTRIBUTE_DIRECTORY;
 
 		// If user requested the file not be force created
 		if (!force_create)
-			return (uint64_t)CreateFileA(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			return (uint64_t)CreateFileA(path, access, 0, NULL, OPEN_EXISTING, attributes, NULL);
 
 		// Otherwise, split the path into chunks, and create any required directories
 		size_t path_length = strlen(path);
@@ -57,12 +57,157 @@ namespace Aurion
 		}
 
 		// Only create the file once all parent directories exist
-		return (uint64_t)CreateFileA(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		return (uint64_t)CreateFileA(path, access, 0, NULL, CREATE_ALWAYS, attributes, NULL);
 	}
 
 	FSFileHandle WindowsFileSystem::OpenFile(const char* path, const bool& force_create)
 	{
 		return FSFileHandle(this, path, force_create);
+	}
+
+	bool WindowsFileSystem::GetAllFiles(const char* path, FSFileHandle*& out_files, size_t& out_count)
+	{
+		// Bail if the directory is invalid
+		if (!DirectoryExists(path))
+			return false;
+
+		// Clear out any existing memory
+		delete[] out_files;
+
+		// Prep path for searching
+		size_t path_length = strlen(path);
+		char* search_dir = new char[path_length + 3];
+		strncpy_s(search_dir, path_length + 3, path, path_length);
+		search_dir[path_length] = '/';
+		search_dir[path_length + 1] = '*';
+		search_dir[path_length + 2] = '\0';
+
+		// Open a find handle
+		WIN32_FIND_DATAA data;
+		HANDLE find_handle = FindFirstFileA(search_dir, &data);
+
+		// Bail if the handle is invalid
+		if (find_handle == INVALID_HANDLE_VALUE)
+			return false;
+
+		out_count = 0;
+		while (FindNextFileA(find_handle, &data) != 0)
+		{
+			// Keep going if the current object is a directory
+			if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				continue;
+
+			out_count++;
+		}
+
+		// Create file handles
+		out_files = new FSFileHandle[out_count];
+		find_handle = FindFirstFileA(search_dir, &data);
+
+		size_t created_count = 0;
+		size_t padding = path[path_length - 1] == '/' ? 0 : 1;
+		size_t file_path_length = 0;
+		while (FindNextFileA(find_handle, &data))
+		{
+			// Keep going if the current object is a directory
+			if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				continue;
+
+			// Generate file path
+			file_path_length = path_length + padding + strlen(data.cFileName) + 1;
+			char* file_path = new char[file_path_length];
+			strncpy_s(file_path, file_path_length, path, path_length);
+			if (padding != 0)
+				file_path[path_length] = '/';
+			strncpy_s(file_path + path_length + padding, file_path_length - path_length - padding, data.cFileName, strlen(data.cFileName));
+			file_path[file_path_length - 1] = '\0';
+
+			//std::cout << "New File Path: " << file_path << std::endl;
+
+			out_files[created_count] = FSFileHandle();
+			out_files[created_count].Register(this, file_path, false);
+			created_count++;
+		}
+
+		FindClose(find_handle);
+
+		return true;
+	}
+	
+	bool WindowsFileSystem::GetAllDirectories(const char* path, FSDirectoryHandle*& out_dirs, size_t& out_count)
+	{
+		// Bail if the directory is invalid
+		if (!DirectoryExists(path))
+			return false;
+
+		// Clear out any existing memory
+		delete[] out_dirs;
+
+		// Prep path for searching
+		size_t path_length = strlen(path);
+		char* search_dir = new char[path_length + 3];
+		strncpy_s(search_dir, path_length + 3, path, path_length);
+		search_dir[path_length] = '/';
+		search_dir[path_length + 1] = '*';
+		search_dir[path_length + 2] = '\0';
+
+		// Open a find handle
+		WIN32_FIND_DATAA data;
+		HANDLE find_handle = FindFirstFileA(search_dir, &data);
+
+		// Bail if the handle is invalid
+		if (find_handle == INVALID_HANDLE_VALUE)
+			return false;
+
+		out_count = 0;
+
+		while (FindNextFileA(find_handle, &data) != 0)
+		{
+			// Keep going if the current object is a directory
+			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				continue;
+
+			// Don't attempt to go back a directory
+			if (data.cFileName[0] == '.' && data.cFileName[1] == '.')
+				continue;
+
+			out_count++;
+		}
+
+		// Create file handles
+		out_dirs = new FSDirectoryHandle[out_count];
+		find_handle = FindFirstFileA(search_dir, &data);
+
+		size_t created_count = 0;
+		size_t padding = path[path_length - 1] == '/' ? 0 : 1;
+		size_t file_path_length = 0;
+		while (FindNextFileA(find_handle, &data))
+		{
+			// Keep going if the current object is a directory
+			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				continue;
+
+			// Don't attempt to go back a directory
+			if (data.cFileName[0] == '.' && data.cFileName[1] == '.')
+				continue;
+
+			// Generate file path
+			file_path_length = path_length + padding + strlen(data.cFileName) + 1;
+			char* file_path = new char[file_path_length];
+			strncpy_s(file_path, file_path_length, path, path_length);
+			if (padding != 0)
+				file_path[path_length] = '/';
+			strncpy_s(file_path + path_length + padding, file_path_length - path_length - padding, data.cFileName, strlen(data.cFileName));
+			file_path[file_path_length - 1] = '\0';
+
+			out_dirs[created_count] = FSDirectoryHandle();
+			out_dirs[created_count].Register(this, file_path, false);
+			created_count++;
+		}
+
+		FindClose(find_handle);
+
+		return true;
 	}
 
 	bool WindowsFileSystem::CloseFile(const uint64_t& handle)

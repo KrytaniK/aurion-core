@@ -5,7 +5,7 @@ module;
 #include <cstdlib>
 #include <utility>
 
-export module Aurion.FileSystem:Info;
+export module Aurion.FileSystem:FileData;
 
 export namespace Aurion
 {

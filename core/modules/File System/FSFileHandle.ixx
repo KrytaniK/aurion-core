@@ -5,7 +5,7 @@ module;
 
 export module Aurion.FileSystem:FileHandle;
 
-import :Info;
+import :FileData;
 
 export namespace Aurion
 {
@@ -52,5 +52,11 @@ export namespace Aurion
 		uint64_t m_system_handle;
 		size_t m_reference_count;
 		FSFileInfo m_info;
+	};
+
+	struct AURION_API FSFileCollection
+	{
+		FSFileHandle* handles = nullptr;
+		size_t count = 0;
 	};
 }

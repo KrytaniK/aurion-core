@@ -3,11 +3,13 @@ module;
 #include <macros/AurionExport.h>
 
 #include <cstdint>
-#include <Windows.h>
 
 export module Aurion.FileSystem:WindowsImpl;
 
 import :Interface;
+import :DirectoryHandle;
+import :FileHandle;
+import :FileData;
 
 #ifdef AURION_PLATFORM_WINDOWS
 
@@ -22,6 +24,10 @@ export namespace Aurion
 		virtual uint64_t GenerateHandle(const char* path, const bool& force_create) override;
 
 		virtual FSFileHandle OpenFile(const char* path, const bool& force_create) override;
+
+		virtual bool GetAllFiles(const char* path, FSFileHandle*& out_files, size_t& out_count) override;
+
+		virtual bool GetAllDirectories(const char* path, FSDirectoryHandle*& out_dirs, size_t& out_count) override;
 
 		virtual bool CloseFile(const uint64_t& handle) override;
 
