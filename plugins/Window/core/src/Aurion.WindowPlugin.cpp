@@ -1,9 +1,9 @@
 #include <macros/AurionExport.h>
-
-#include <iostream>
+#include <macros/AurionLog.h>
 
 import Aurion.WindowPlugin;
 import Aurion.Window;
+import Aurion.GLFW;
 
 namespace Aurion
 {
@@ -19,7 +19,7 @@ namespace Aurion
 
 	void WindowPlugin::Initialize(IPluginContext* context)
 	{
-		std::cout << "[Window Plugin] Initializing!" << std::endl;
+		AURION_INFO("Initializing Window Plugin!");
 
 		// Bail if the context is invalid
 		if (!context)
@@ -34,13 +34,13 @@ namespace Aurion
 
 	AURION_API IPlugin* CreatePlugin()
 	{
-		std::cout << "[CreatePlugin] Window Plugin" << std::endl;
+		AURION_INFO("Creating Window Plugin");
 		return new WindowPlugin();
 	}
 
 	AURION_API void DestroyPlugin(const IPlugin* plugin)
 	{
-		std::cout << "[DestroyPlugin] Window Plugin" << std::endl;
+		AURION_INFO("Destroying Window Plugin");
 		return;
 	}
 }

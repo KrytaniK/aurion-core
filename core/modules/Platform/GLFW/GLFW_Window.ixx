@@ -1,19 +1,20 @@
 module;
 
 #include <macros/AurionExport.h>
+
 #include <GLFW/glfw3.h>
 
-export module Aurion.WindowPlugin:GLFWWindow;
+export module Aurion.GLFW:Window;
 
 import Aurion.Window;
 
 export namespace Aurion
 {
-	class AURION_API GLFWWindow : public IWindow
+	class AURION_API GLFW_Window : public IWindow
 	{
 	public:
-		GLFWWindow();
-		virtual ~GLFWWindow() override;
+		GLFW_Window();
+		virtual ~GLFW_Window() override;
 		
 		virtual void Open(const WindowConfig& config) override;
 

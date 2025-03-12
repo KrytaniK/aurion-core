@@ -1,9 +1,12 @@
+#include <macros/AurionLog.h>
+
 #include <string>
 #include <iostream>
 
 #include <GLFW/glfw3.h>
 
-import Aurion.WindowPlugin;
+import Aurion.Window;
+import Aurion.GLFW;
 
 namespace Aurion
 {
@@ -11,7 +14,7 @@ namespace Aurion
 		: m_max_window_count(1), m_windows(nullptr), m_window_ids(nullptr)
 	{
 		glfwSetErrorCallback([](int err, const char* desc) {
-			std::cout << "[GLFW] Error (" << err << ") " << desc << std::endl;
+			AURION_ERROR("[GLFW] Error (%d)  %s", err, desc);
 		});
 
 		glfwInit();
@@ -30,7 +33,7 @@ namespace Aurion
 		m_max_window_count = config.max_window_count;
 
 		// Allocate enough space for the max # of windows
-		m_windows = new GLFWWindow[config.max_window_count];
+		m_windows = new GLFW_Window[config.max_window_count];
 
 		// Allocate and initialize all IDs to 0
 		m_window_ids = new uint64_t[config.max_window_count](-1);

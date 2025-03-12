@@ -30,13 +30,13 @@ function GenerateCoreSolution()
         files { "core/**.h", "core/**.ixx", "core/**.cpp" } 
 
         -- Include Directories
-        includedirs { "core" }
+        includedirs { "core", "third_party/GLFW/include" }
 
         -- Library Directories 
-        libdirs {}
+        libdirs { "third_party/GLFW/lib" }
 
         -- Link Directories
-        links {}
+        links { "glfw3.lib" }
 
         -- Global Project defines
         defines { "AURION_DLL" }
@@ -59,19 +59,13 @@ function GenerateCoreSolution()
 
             defines { "AURION_CORE_DEBUG" }
 
-            links {}
-
         filter "configurations:Release"
             runtime "Release"
             optimize "On"
 
-            links {}
-
         filter "configurations:Dist"
             runtime "Release"
             optimize "On"
-
-            links {}
 end
 
 -- Function to scan and generate projects for each plugin in the SDK

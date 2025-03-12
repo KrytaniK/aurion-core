@@ -122,8 +122,6 @@ namespace Aurion
 			strncpy_s(file_path + path_length + padding, file_path_length - path_length - padding, data.cFileName, strlen(data.cFileName));
 			file_path[file_path_length - 1] = '\0';
 
-			//std::cout << "New File Path: " << file_path << std::endl;
-
 			out_files[created_count] = FSFileHandle();
 			out_files[created_count].Register(this, file_path, false);
 			created_count++;

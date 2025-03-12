@@ -1,5 +1,26 @@
+module;
+
+#include <macros/AurionExport.h>
+
 export module Aurion.WindowPlugin;
 
-export import :Plugin;
-export import :GLFWDriver;
-export import :GLFWWindow;
+import Aurion.Plugin;
+import Aurion.GLFW;
+
+export namespace Aurion
+{
+	class AURION_API WindowPlugin : public IPlugin
+	{
+	public:
+		WindowPlugin();
+		virtual ~WindowPlugin() override final;
+
+		virtual void Initialize(IPluginContext* context) override final;
+
+	private:
+		GLFWDriver m_window_driver;
+	};
+
+	extern "C" AURION_API IPlugin* CreatePlugin();
+	extern "C" AURION_API void DestroyPlugin(const IPlugin* plugin);
+}

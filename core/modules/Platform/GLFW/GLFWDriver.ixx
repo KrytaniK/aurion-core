@@ -3,11 +3,11 @@ module;
 #include <macros/AurionExport.h>
 #include <cstdint>
 
-export module Aurion.WindowPlugin:GLFWDriver;
+export module Aurion.GLFW:Driver;
 
 import Aurion.Window;
 
-import :GLFWWindow;
+import :Window;
 
 export namespace Aurion
 {
@@ -30,7 +30,7 @@ export namespace Aurion
 
 	private:
 		size_t m_max_window_count;
-		GLFWWindow* m_windows;
+		GLFW_Window* m_windows;
 		uint64_t* m_window_ids;
 	};
 }

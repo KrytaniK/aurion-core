@@ -1,21 +1,21 @@
 #include <GLFW/glfw3.h>
 
-import Aurion.WindowPlugin;
+import Aurion.GLFW;
 
 namespace Aurion
 {
-	GLFWWindow::GLFWWindow()
+	GLFW_Window::GLFW_Window()
 		: m_native_monitor(nullptr), m_native_window(nullptr), m_state({}), m_state_cached({})
 	{
 
 	}
 
-	GLFWWindow::~GLFWWindow()
+	GLFW_Window::~GLFW_Window()
 	{
 		Close();
 	}
 
-	void GLFWWindow::Open(const WindowConfig& config)
+	void GLFW_Window::Open(const WindowConfig& config)
 	{
 
 		// Copy Config data to window state
@@ -54,7 +54,7 @@ namespace Aurion
 		this->SetGLFWCallbacks();
 	}
 
-	void GLFWWindow::Close()
+	void GLFW_Window::Close()
 	{
 		if (m_native_window)
 		{
@@ -74,7 +74,7 @@ namespace Aurion
 		m_state_cached = {};
 	}
 
-	void GLFWWindow::Update(float deltaTime)
+	void GLFW_Window::Update(float deltaTime)
 	{
 		if (!m_native_window)
 			return;
@@ -82,7 +82,7 @@ namespace Aurion
 		glfwPollEvents();
 	}
 
-	void GLFWWindow::SetTitle(const char* title)
+	void GLFW_Window::SetTitle(const char* title)
 	{
 		if (!m_native_window)
 			return;
@@ -91,7 +91,7 @@ namespace Aurion
 		glfwSetWindowTitle(m_native_window, m_state.title);
 	}
 
-	void GLFWWindow::SetMode(const WindowMode& mode)
+	void GLFW_Window::SetMode(const WindowMode& mode)
 	{
 		if (!m_native_window)
 			return;
@@ -152,7 +152,7 @@ namespace Aurion
 		}
 	}
 
-	void GLFWWindow::Resize(const uint16_t& width, const uint16_t& height)
+	void GLFW_Window::Resize(const uint16_t& width, const uint16_t& height)
 	{
 		if (!m_native_window)
 			return;
@@ -160,7 +160,7 @@ namespace Aurion
 		glfwSetWindowSize(m_native_window, (int)width, (int)height);
 	}
 
-	void GLFWWindow::SetPos(const uint16_t& xPos, const uint16_t& yPos)
+	void GLFW_Window::SetPos(const uint16_t& xPos, const uint16_t& yPos)
 	{
 		if (!m_native_window)
 			return;
@@ -168,7 +168,7 @@ namespace Aurion
 		glfwSetWindowPos(m_native_window, (int)xPos, (int)yPos);
 	}
 
-	bool GLFWWindow::Minimize()
+	bool GLFW_Window::Minimize()
 	{
 		if (!m_native_window)
 			return false;
@@ -187,7 +187,7 @@ namespace Aurion
 		return m_state.minimized;
 	}
 
-	bool GLFWWindow::Maximize()
+	bool GLFW_Window::Maximize()
 	{
 		if (!m_native_window)
 			return false;
@@ -206,7 +206,7 @@ namespace Aurion
 		return m_state.maximized;
 	}
 
-	bool GLFWWindow::Focus()
+	bool GLFW_Window::Focus()
 	{
 		if (!m_native_window || m_state.minimized)
 			return false;
@@ -216,7 +216,7 @@ namespace Aurion
 		return true;
 	}
 
-	bool GLFWWindow::ToggleDecoration()
+	bool GLFW_Window::ToggleDecoration()
 	{
 		if (!m_native_window)
 			return false;
@@ -228,42 +228,42 @@ namespace Aurion
 		return !decorated;
 	}
 
-	const char* GLFWWindow::GetTitle()
+	const char* GLFW_Window::GetTitle()
 	{
 		return m_state.title;
 	}
 
-	uint16_t GLFWWindow::GetWidth()
+	uint16_t GLFW_Window::GetWidth()
 	{
 		return m_state.width;
 	}
 
-	uint16_t GLFWWindow::GetHeight()
+	uint16_t GLFW_Window::GetHeight()
 	{
 		return m_state.height;
 	}
 
-	void* GLFWWindow::GetNativeHandle()
+	void* GLFW_Window::GetNativeHandle()
 	{
 		return m_native_window;
 	}
 
-	const WindowProperties& GLFWWindow::GetProperties() const
+	const WindowProperties& GLFW_Window::GetProperties() const
 	{
 		return m_state;
 	}
 
-	bool GLFWWindow::IsOpen()
+	bool GLFW_Window::IsOpen()
 	{
 		return m_native_window != nullptr;
 	}
 
-	bool GLFWWindow::IsFullscreen()
+	bool GLFW_Window::IsFullscreen()
 	{
 		return m_state.mode == WINDOW_MODE_FULLSCREEN_EXCLUSIVE || m_state.mode == WINDOW_MODE_FULLSCREEN_BORDERLESS;
 	}
 
-	void GLFWWindow::CreateNativeWindow()
+	void GLFW_Window::CreateNativeWindow()
 	{
 		if (!m_native_monitor)
 			return;
@@ -315,10 +315,10 @@ namespace Aurion
 		}
 	}
 
-	void GLFWWindow::SetGLFWCallbacks()
+	void GLFW_Window::SetGLFWCallbacks()
 	{
 		glfwSetWindowCloseCallback(m_native_window, [](GLFWwindow* window) {
-			GLFWWindow* _this = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+			GLFW_Window* _this = static_cast<GLFW_Window*>(glfwGetWindowUserPointer(window));
 
 			if (!_this || !_this->m_native_window)
 				return;

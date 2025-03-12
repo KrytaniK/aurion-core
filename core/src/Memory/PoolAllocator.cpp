@@ -1,3 +1,5 @@
+#include <macros/AurionLog.h>
+
 #include <cstdlib>
 #include <cstdint>
 #include <iostream>
@@ -77,7 +79,7 @@ namespace Aurion
 	{
 		if (!m_start || !m_free_list)
 		{
-			std::cout << "No More Room!" << std::endl;
+			AURION_ERROR("No More Room!");
 			return nullptr;
 		}
 
@@ -133,14 +135,14 @@ namespace Aurion
 		// Ensure the allocator has been initialized
 		if (!m_start)
 		{
-			std::cout << "Invalid Memory" << std::endl;
+			AURION_ERROR("Pool Allocator not initialized!");
 			return false;
 		}
 
 		// Ensure the pointer is within the bounds of the allocated memory
 		if ((size_t)ptr < (size_t)m_start || (size_t)ptr >= ((size_t)m_start + (m_chunk_count * m_chunk_size)))
 		{
-			std::cout << "Out of bouinds access" << std::endl;
+			AURION_ERROR("Attempted to access out of bounds memory!");
 			return false;
 		}
 
@@ -157,7 +159,6 @@ namespace Aurion
 			current = (void**)(*current);
 		}
 
-		std::cout << "Memory is mapped!" << std::endl;
 		return true;
 	}
 }
