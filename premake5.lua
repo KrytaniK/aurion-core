@@ -36,14 +36,15 @@ function GenerateCoreSolution()
         libdirs { "third_party/GLFW/lib" }
 
         -- Link Directories
-        links { "glfw3.lib" }
+        links { "glfw3dll.lib" }
 
         -- Global Project defines
         defines { "AURION_DLL" }
 
         postbuildcommands {
             "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/Sandbox",
-            "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
+            "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/",
+            "{COPYFILE} %{wks.location}/third_party/GLFW/lib/glfw3.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
         }
 
         -- Platform (OS) Filters
