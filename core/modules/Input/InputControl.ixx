@@ -21,37 +21,32 @@ export namespace Aurion
 	class AURION_API InputControl
 	{
 	public:
-		InputControl() = default;
-		InputControl(const InputControlInfo& info, void* parent_state);
-		~InputControl() = default;
+		InputControl();
+		InputControl(const InputControlInfo& info, uint8_t* parent_state);
+		~InputControl();
 
-		const bool IsValid();
+		const bool IsValid() const;
 
 		const InputControlInfo& GetInfo();
 
-		//// Type conversions to keep input values bound to default types
-		//operator bool() const;
-		//operator int() const;
-		//operator float() const;
-		//operator float*() const;
+		// Type conversions to keep input values bound to default types
+		operator bool() const;
+		operator int() const;
+		operator float() const;
+		operator float*() const;
 
-		//// Assignment operator overloads for default types
-		//InputControl& operator=(bool value);
-		//InputControl& operator=(int value);
-		//InputControl& operator=(float value);
-		//InputControl& operator=(float values[2]);
-		//InputControl& operator=(float values[3]);
-		//InputControl& operator=(float values[4]);
+		// Assignment operator overloads for default types
+		InputControl& operator=(bool value);
+		InputControl& operator=(int value);
+		InputControl& operator=(float value);
+		InputControl& operator=(float* values);
 
-		//// Array indexing operator overload to make retrieving child controls easy.
-		//const InputControl& operator[](size_t index) const;
-
-		// No copys/assignments
-		InputControl(InputControl&) = delete;
-		InputControl& operator=(InputControl&) = delete;
+		// Array indexing operator overload to make retrieving child controls easy.
+		const InputControl& operator[](size_t index) const;
 
 	private:
 		InputControlInfo m_info;
-		void* m_state_block;
+		uint8_t* m_state_block;
 	};
+	
 }
