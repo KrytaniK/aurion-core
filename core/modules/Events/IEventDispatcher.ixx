@@ -20,6 +20,8 @@ export namespace Aurion
 
 		virtual bool AddEventListener(IEventListener* listener) = 0;
 
+		virtual bool RemoveEventListener(IEventListener* listener) = 0;
+
 		virtual void Dispatch(IEvent* event) = 0;
 	};
 }

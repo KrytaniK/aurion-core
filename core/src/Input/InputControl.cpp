@@ -36,6 +36,60 @@ namespace Aurion
 		return m_info;
 	}
 
+	const InputControlState& InputControl::GetState()
+	{
+		return m_info.input_state;
+	}
+
+	const uint8_t& InputControl::GetInputCode()
+	{
+		return m_info.input_code;
+	}
+
+	bool InputControl::SetFromArray(const int*& values, const size_t& count)
+	{
+		if (!this->IsValid() || values == nullptr || count == 0)
+			return false;
+
+		size_t max_writes = m_info.size_in_bytes / sizeof(int);
+
+		// If this control isn't sized for floats return.
+		if (max_writes == 0)
+			return false;
+
+		// Never attempt to write more data than is available
+		if (count < max_writes)
+			max_writes = count;
+
+		// Write each float value into this control. This may overwrite all control data
+		for (size_t i = 0; i < max_writes; i++)
+			*((int*)m_state_block + i) = values[i];
+
+		return true;
+	}
+
+	bool InputControl::SetFromArray(const float*& values, const size_t& count)
+	{
+		if (!this->IsValid() || values == nullptr || count == 0)
+			return false;
+
+		size_t max_writes = m_info.size_in_bytes / sizeof(float);
+
+		// If this control isn't sized for floats return.
+		if (max_writes == 0)
+			return false;
+
+		// Never attempt to write more data than is available
+		if (count < max_writes)
+			max_writes = count;
+
+		// Write each float value into this control. This may overwrite all control data
+		for (size_t i = 0; i < max_writes; i++)
+			*((float*)m_state_block + i) = values[i];
+
+		return true;
+	}
+
 	InputControl::operator bool() const
 	{
 		return this->IsValid();
@@ -77,9 +131,24 @@ namespace Aurion
 		if (m_info.size_in_bits != 0)
 		{
 			if (value)
+			{
+				// Assign value in memory
 				*m_state_block |= (1 << m_info.bit); // Set bit to 1
+
+				// Update control state
+				if (m_info.input_state > INPUT_STATE_IDLE)
+					m_info.input_state = INPUT_STATE_HELD;
+				else
+					m_info.input_state = INPUT_STATE_ACTIVE;
+			}
 			else
+			{
+				// Assign value in memory
 				*m_state_block &= ~(1 << m_info.bit); // Clear the bit
+
+				// Clear control state
+				m_info.input_state = INPUT_STATE_IDLE;
+			}
 
 			return *this;
 		}
@@ -110,16 +179,6 @@ namespace Aurion
 		*((float*)m_state_block) = value;
 
 		return *this;
-	}
-
-	InputControl& InputControl::operator=(float* values)
-	{
-		if (!this->IsValid() || values == nullptr || m_info.size_in_bytes < sizeof(float))
-			return *this;
-
-		// Write each float value into this control, not exceeding the control's size.
-		for (size_t i = 0; i < (m_info.size_in_bytes / sizeof(float)); i++)
-			*((float*)m_state_block + i) = values[i];
 	}
 
 	const InputControl& InputControl::operator[](size_t index) const
