@@ -15,6 +15,8 @@ export namespace Aurion
 	public:
 		virtual ~IEventListener() = default;
 
+		virtual uint64_t GetEventType() = 0;
+
 		virtual void OnEvent(IEvent* event) = 0;
 	};
 }

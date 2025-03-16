@@ -18,6 +18,8 @@ export namespace Aurion
 	public:
 		virtual ~IEventDispatcher() = default;
 
+		virtual uint64_t GetEventType() = 0;
+
 		virtual bool AddEventListener(IEventListener* listener) = 0;
 
 		virtual bool RemoveEventListener(IEventListener* listener) = 0;
