@@ -16,14 +16,34 @@ export namespace Aurion
 	public:
 		virtual ~IInputContext() = default;
 
-		virtual const InputDevice& CreateDevice(const InputDeviceInfo& info, const uint16_t& layout_id) = 0;
+		// Device Management
 
-		virtual bool AddDevice(const InputDevice& device) = 0;
+		virtual IInputDevice* CreateDevice(const InputDeviceInfo& info, const uint32_t& layout_id) = 0;
 
-		virtual void AddLayout(const InputLayout& layout) = 0;
+		virtual IInputDevice* CreateDevice(const InputDeviceInfo& info, const InputDeviceLayout& layout) = 0;
 
-		virtual bool IsKeyPressed(const uint16_t& key_code) = 0;
-		
+		virtual IInputDevice* GetDevice(const uint64_t& id) = 0;
 
+		virtual IInputDevice* GetDevice(const char* name) = 0;
+
+		virtual bool RemoveDevice(const uint64_t& id) = 0;
+
+		virtual bool RemoveDevice(const char* name) = 0;
+
+		virtual bool RemoveDevice(IInputDevice* device) = 0;
+
+		// Layout Management
+
+		virtual const InputDeviceLayout& GetLayout(const uint32_t& layout_id) = 0;
+
+		virtual const InputDeviceLayout& GetLayout(const char* name) = 0;
+
+		virtual void AddDeviceLayout(const InputDeviceLayout& layout) = 0;
+
+		virtual bool RemoveDeviceLayout(const uint64_t& id) = 0;
+
+		virtual bool RemoveDeviceLayout(const char* name) = 0;
+
+		virtual bool RemoveDeviceLayout(const InputDeviceLayout& layout) = 0;
 	};
 }
