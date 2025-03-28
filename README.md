@@ -44,8 +44,8 @@ The first major milestones for this project are outlined below:
 :heavy_check_mark: **Debug Tools** – Logging (console, file).   
 :heavy_check_mark: **Memory Utility** – Basic utilities for better memory management.   
 :heavy_check_mark: **Window Management** – Cross-Platform window management through GLFW.    
-:o: **Input Management** – Basic I/O support for common devices.   
-:o: **Events** – Various interfaces for handling application events (publisher/subscriber, listeners, event bus, etc.).   
+:heavy_check_mark: **Input Management** – Basic I/O support for common devices.   
+:heavy_check_mark: **Events** – Various interfaces for handling application events (publisher/subscriber, listeners, event bus, etc.).   
 :heavy_check_mark: **File System** – A streamlined way to handle files.   
 
 ### **Project Goals**
