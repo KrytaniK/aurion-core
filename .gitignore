@@ -7,11 +7,15 @@
 [Bb]in/
 [Bb]in-int/
 
+# Don't include files in the Sandbox Directory
+[Ss]andbox/**
+
 # Solution files
 *.sln
 
 # Project Files
 *.vcxproj
+*.filters
 
 # User-specific files
 *.rsuser
