@@ -1,3 +1,5 @@
+#include <macros/AurionLog.h>
+
 #include <GLFW/glfw3.h>
 
 import Aurion.GLFW;
@@ -251,6 +253,16 @@ namespace Aurion
 	const WindowProperties& GLFW_Window::GetProperties() const
 	{
 		return m_state;
+	}
+
+	void GLFW_Window::SetInputContext(IInputContext* context)
+	{
+		m_input_context = context;
+	}
+
+	IInputContext* GLFW_Window::GetInputContext()
+	{
+		return m_input_context;
 	}
 
 	bool GLFW_Window::IsOpen()

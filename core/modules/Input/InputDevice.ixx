@@ -31,7 +31,7 @@ export namespace Aurion
 		// Retrieve basic device information
 		virtual const InputDeviceInfo& GetInfo() = 0;
 
-		virtual const uint64_t& GetLayoutID() = 0;
+		virtual const uint32_t& GetLayoutID() = 0;
 
 		// Searches for the control, provided the input_code for that control
 		virtual IInputControl* GetControl(const uint64_t& input_code) = 0;

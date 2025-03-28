@@ -79,7 +79,7 @@ namespace Aurion
 	{
 		if (!m_start || !m_free_list)
 		{
-			AURION_ERROR("No More Room!");
+			AURION_ERROR("[Pool Allocator] Error: Failed to allocate space for resource. Reason: Out of memory");
 			return nullptr;
 		}
 

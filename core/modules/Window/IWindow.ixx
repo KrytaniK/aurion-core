@@ -6,6 +6,8 @@ module;
 
 export module Aurion.Window:Window;
 
+import Aurion.Input;
+
 // TODO: Add Graphics API target to Window Config
 
 export namespace Aurion
@@ -79,6 +81,10 @@ export namespace Aurion
 		virtual void* GetNativeHandle() = 0;
 
 		virtual const WindowProperties& GetProperties() const = 0;
+
+		virtual void SetInputContext(IInputContext* context) = 0;
+
+		virtual IInputContext* GetInputContext() = 0;
 
 		virtual bool IsOpen() = 0;
 		

@@ -6,6 +6,8 @@ module;
 
 export module Aurion.GLFW:Window;
 
+import :InputContext;
+
 import Aurion.Window;
 
 export namespace Aurion
@@ -48,6 +50,10 @@ export namespace Aurion
 
 		virtual const WindowProperties& GetProperties() const override;
 
+		virtual void SetInputContext(IInputContext* context) override;
+		
+		virtual IInputContext* GetInputContext() override;
+
 		virtual bool IsOpen() override;
 
 		virtual bool IsFullscreen() override;
@@ -57,6 +63,7 @@ export namespace Aurion
 		void SetGLFWCallbacks();
 
 	private:
+		IInputContext* m_input_context;
 		GLFWwindow* m_native_window;
 		GLFWmonitor* m_native_monitor;
 		WindowProperties m_state;
