@@ -26,6 +26,7 @@ namespace Aurion
 			return;
 
 		delete[] m_windows;
+		delete[] m_window_ids;
 	}
 
 	void GLFWDriver::Initialize(const WindowDriverConfig& config)
@@ -33,10 +34,12 @@ namespace Aurion
 		m_max_window_count = config.max_window_count;
 
 		// Allocate enough space for the max # of windows
-		m_windows = new GLFW_Window[config.max_window_count];
+		m_windows = new GLFW_Window[m_max_window_count];
+		m_window_ids = new uint64_t[m_max_window_count];
 
-		// Allocate and initialize all IDs to 0
-		m_window_ids = new uint64_t[config.max_window_count](-1);
+		// Initialize all IDs to 0
+		for (size_t i = 0; i < m_max_window_count; i++)
+			m_window_ids[i] = 0;
 	}
 
 	WindowHandle GLFWDriver::GetWindow(const char* title)
@@ -51,7 +54,7 @@ namespace Aurion
 
 	WindowHandle GLFWDriver::GetWindow(const uint64_t& id)
 	{
-		if (m_windows == nullptr || id == -1)
+		if (m_windows == nullptr || id == 0)
 			return WindowHandle{};
 
 		for (size_t i = 0; i < m_max_window_count; i++)
@@ -73,7 +76,7 @@ namespace Aurion
 		// Find the first empty window, and insert there
 		for (size_t i = 0; i < m_max_window_count; i++)
 		{
-			if (m_window_ids[i] == -1)
+			if (m_window_ids[i] == 0)
 			{
 				// Hash the window title to get window id
 				m_window_ids[i] = (uint64_t)hash(config.title);
@@ -102,7 +105,7 @@ namespace Aurion
 
 	bool GLFWDriver::RemoveWindow(const uint64_t& id)
 	{
-		if (m_windows == nullptr || id == -1)
+		if (m_windows == nullptr || id == 0)
 			return false;
 
 		// Search for the window
@@ -113,7 +116,7 @@ namespace Aurion
 				// If found, close the window (Resets state),
 				//	reset the corresponding window ID
 				m_windows[i].Close();
-				m_window_ids[i] = (uint64_t)(-1);
+				m_window_ids[i] = (uint64_t)(0);
 			}
 		}
 
@@ -134,7 +137,7 @@ namespace Aurion
 				//	reset the corresponding window ID, and
 				//	null any references to it.
 				m_windows[i].Close();
-				m_window_ids[i] = (uint64_t)(-1);
+				m_window_ids[i] = (uint64_t)(0);
 				window = nullptr;
 			}
 		}

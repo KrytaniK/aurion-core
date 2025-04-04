@@ -98,12 +98,14 @@ function GenerateSandboxProject()
 
         files { "Sandbox/**.ixx", "Sandbox/**.h", "Sandbox/**.cpp" }
 
-        includedirs { "%{wks.location}/core" }
+        includedirs { "%{wks.location}/core", "third_party/GLFW/include" }
+
+        libdirs { "third_party/GLFW/lib" }
 
         print("[Premake5] Linking project dependencies...")
 
         -- Link Core Framework
-        links { "AurionCore" }
+        links { "AurionCore", "glfw3dll.lib" }
 
         print("[Premake5] Adding filters...")
 
