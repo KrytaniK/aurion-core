@@ -1,69 +1,85 @@
+#include <macros/AurionLog.h>
+#include <type_traits>
+
 import Aurion.FileSystem;
 
 namespace Aurion
 {
 	FSFileHandle::FSFileHandle() 
-		: m_file_system(nullptr), m_path(nullptr), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(0), m_info({})
+		: m_file_system(nullptr), m_path(nullptr), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(1), m_info({})
 	{
-
+		
 	}
 
 	FSFileHandle::FSFileHandle(IFileSystem* fs, const char* path, const bool& force_create)
-		: m_file_system(fs), m_path(path), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(0), m_info({})
+		: m_file_system(fs), m_path(path), m_file_data(new FSFileData()), m_system_handle(-1), m_reference_count(1), m_info({})
 	{
 		this->Register(fs, path, force_create);
 	}
 
 	FSFileHandle::~FSFileHandle()
 	{
+		m_reference_count--;
+
+		if (m_file_system == nullptr || m_path == nullptr || m_system_handle == 0)
+			return;
+
 		// Manually free if no more external references exist
 		if (m_reference_count == 0)
 		{
 			// Close the file handle if necessary
-			if (m_file_system && m_system_handle != 0)
-				m_file_system->CloseFile(m_system_handle);
+			m_file_system->CloseFile(m_system_handle);
 
 			// Free path buffer
-			if (m_path)
+			if (m_path != nullptr)
 				delete[] m_path;
 
 			// Free name buffer
-			if (m_info.name)
+			if (m_info.name != nullptr)
 				delete[] m_info.name;
 
 			// Free extension buffer
-			if (m_info.extension)
+			if (m_info.extension != nullptr)
 				delete[] m_info.extension;
 			
 			// Free allocated file data
-			delete m_file_data;
+			if (m_file_data)
+				delete m_file_data;
 		}
 	}
 
 	FSFileHandle::FSFileHandle(FSFileHandle&& other)
 	{
+		// Copy data
 		m_file_system = other.m_file_system;
 		m_path = other.m_path;
+		m_info = std::move(other.m_info);
 		m_file_data = other.m_file_data;
 		m_reference_count = other.m_reference_count;
 		m_system_handle = other.m_system_handle;
 
+		// Invalidate original object
 		other.m_file_system = nullptr;
 		other.m_path = nullptr;
+		other.m_info = FSFileInfo{};
 		other.m_file_data = nullptr;
 		other.m_system_handle = 0;
 	}
 
 	FSFileHandle& FSFileHandle::operator=(FSFileHandle&& other)
 	{
+		// Copy data
 		m_file_system = other.m_file_system;
 		m_path = other.m_path;
+		m_info = std::move(other.m_info);
 		m_file_data = other.m_file_data;
 		m_reference_count = other.m_reference_count;
 		m_system_handle = other.m_system_handle;
 
+		// Invalidate original object
 		other.m_file_system = nullptr;
 		other.m_path = nullptr;
+		other.m_info = FSFileInfo{};
 		other.m_file_data = nullptr;
 		other.m_system_handle = 0;
 
@@ -72,8 +88,10 @@ namespace Aurion
 
 	FSFileHandle::FSFileHandle(FSFileHandle& other)
 	{
+		// Copy data
 		m_file_system = other.m_file_system;
 		m_path = other.m_path;
+		m_info = std::move(other.m_info);
 		m_file_data = other.m_file_data;
 		m_reference_count = ++other.m_reference_count;
 		m_system_handle = other.m_system_handle;
@@ -81,8 +99,10 @@ namespace Aurion
 
 	FSFileHandle& FSFileHandle::operator=(FSFileHandle& other)
 	{
+		// Copy data
 		m_file_system = other.m_file_system;
 		m_path = other.m_path;
+		m_info = std::move(other.m_info);
 		m_file_data = other.m_file_data;
 		m_reference_count = ++other.m_reference_count;
 		m_system_handle = other.m_system_handle;
@@ -93,7 +113,11 @@ namespace Aurion
 	void FSFileHandle::Register(IFileSystem* fs, const char* path, const bool& force_create)
 	{
 		m_file_system = fs;
-		m_path = path;
+
+		char* copy = new char[strlen(path)];
+		strncpy_s(copy, strlen(path) + 1, path, strlen(path) + 1);
+		copy[strlen(path)] = '\0';
+		m_path = copy;
 
 		// Get the system handle, force create the object if needed
 		m_system_handle = m_file_system->GenerateHandle(m_path, force_create);
