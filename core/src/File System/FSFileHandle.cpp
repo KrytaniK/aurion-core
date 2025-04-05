@@ -114,8 +114,8 @@ namespace Aurion
 	{
 		m_file_system = fs;
 
-		char* copy = new char[strlen(path)];
-		strncpy_s(copy, strlen(path) + 1, path, strlen(path) + 1);
+		char* copy = new char[strlen(path) + 1];
+		strncpy_s(copy, strlen(path) + 1, path, strlen(path));
 		copy[strlen(path)] = '\0';
 		m_path = copy;
 
