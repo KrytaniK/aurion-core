@@ -31,7 +31,7 @@ namespace Aurion
 
 		// Value size is ignored here
 
-		uint8_t* byte = m_state_block;
+		uint8_t* byte = m_state_block + m_layout.byte_offset;
 
 		bool new_value = *(bool*)value;
 
@@ -39,7 +39,7 @@ namespace Aurion
 		if (m_layout.size_in_bits == 1)
 		{
 			// Offset the state pointer to write to the correct byte
-			byte = m_state_block + (m_layout.bit_offset / 8);
+			byte = byte + (m_layout.bit_offset / 8);
 
 			// Generate a mask to isolate the desired bit
 			uint8_t mask = (1U << (m_layout.bit_offset % 8));
