@@ -20,11 +20,11 @@ export namespace Aurion
 		virtual void Shutdown() = 0;
 	};
 
-	class AURION_API ApplicationBase : public IApplication
+	class AURION_API Application : public IApplication
 	{
 	public:
-		ApplicationBase();
-		virtual ~ApplicationBase() override;
+		Application();
+		virtual ~Application() override;
 
 		virtual void StartAndRun() override final;
 

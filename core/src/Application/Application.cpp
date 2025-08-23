@@ -4,18 +4,18 @@ import Aurion.Application;
 
 namespace Aurion 
 {
-	ApplicationBase::ApplicationBase()
+	Application::Application()
 	{
 		// Default implementation does nothing.
 	}
 
-	ApplicationBase::~ApplicationBase()
+	Application::~Application()
 	{
 		// Default implementation does nothing.
 	}
 
 	// Starts the application and runs it until m_shouldClose is set to true.
-	void ApplicationBase::StartAndRun()
+	void Application::StartAndRun()
 	{
 		AURION_INFO("Application Initializing...");
 		this->Initialize();
@@ -30,17 +30,17 @@ namespace Aurion
 		this->Shutdown();
 	}
 
-	void ApplicationBase::Initialize()
+	void Application::Initialize()
 	{
 		// Default implementation does nothing.
 	}
 
-	void ApplicationBase::Run()
+	void Application::Run()
 	{
 		// Default implementation does nothing.
 	}
 
-	void ApplicationBase::Shutdown()
+	void Application::Shutdown()
 	{
 		// Default implementation does nothing.
 	}
