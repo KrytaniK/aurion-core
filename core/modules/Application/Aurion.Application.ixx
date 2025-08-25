@@ -4,6 +4,8 @@ module;
 
 export module Aurion.Application;
 
+import Aurion.Events;
+
 export namespace Aurion
 {
 	// Defines an interface for an application, specifying lifecycle methods that must be implemented by derived classes.
@@ -20,11 +22,18 @@ export namespace Aurion
 		virtual void Shutdown() = 0;
 	};
 
-	class AURION_API ApplicationBase : public IApplication
+	class AURION_API Application : public IApplication
 	{
 	public:
-		ApplicationBase();
-		virtual ~ApplicationBase() override;
+		inline static Application* s_instance = nullptr;
+
+	public:
+		static void DispatchEvent(const EventBase* event);
+		static const EventBus& Events();
+
+	public:
+		Application();
+		virtual ~Application() override;
 
 		virtual void StartAndRun() override final;
 
@@ -33,7 +42,10 @@ export namespace Aurion
 		virtual void Run() override;
 		virtual void Shutdown() override;
 
+		virtual void OnEvent(const EventBase* event);
+
 	protected:
+		EventBus m_event_bus;
 		bool m_shouldClose = true;
 	};
 }
