@@ -28,7 +28,8 @@ export namespace Aurion
 		inline static Application* s_instance = nullptr;
 
 	public:
-		inline static void BroadcastEvent(const EventBase* event);
+		static void DispatchEvent(const EventBase* event);
+		static const EventBus& Events();
 
 	public:
 		Application();

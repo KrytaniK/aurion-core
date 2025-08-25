@@ -10,16 +10,19 @@ namespace Aurion
 	/// ------------------------ Static Methods -------------------------
 	/// -----------------------------------------------------------------
 
-	void Application::BroadcastEvent(const EventBase* event)
+	void Application::DispatchEvent(const EventBase* event)
 	{
-		if (!s_instance)
-		{
-			AURION_ERROR("Application instance is null. Cannot broadcast event.");
-			return;
-		}
+		assert(s_instance != nullptr && "No valid application exists!");
 
 		// Forward the event to the application instance for handling.
 		s_instance->OnEvent(event);
+	}
+
+	const EventBus& Application::Events()
+	{
+		assert(s_instance != nullptr && "No valid application exists!");
+
+		return s_instance->m_event_bus;
 	}
 
 	/// -----------------------------------------------------------------
