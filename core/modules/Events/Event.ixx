@@ -14,7 +14,7 @@ export namespace Aurion
 	enum EventCategories : uint16_t
 	{
 		None			= 0,
-		Application		= 1 << 0,
+		App				= 1 << 0,
 		Window			= 1 << 1,
 		File			= 1 << 2,
 		Plugin			= 1 << 3,

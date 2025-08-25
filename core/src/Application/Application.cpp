@@ -1,12 +1,37 @@
 #include <macros/AurionLog.h>
 
+#include <cassert>
+
 import Aurion.Application;
 
 namespace Aurion 
 {
+	/// -----------------------------------------------------------------
+	/// ------------------------ Static Methods -------------------------
+	/// -----------------------------------------------------------------
+
+	void Application::BroadcastEvent(const EventBase* event)
+	{
+		if (!s_instance)
+		{
+			AURION_ERROR("Application instance is null. Cannot broadcast event.");
+			return;
+		}
+
+		// Forward the event to the application instance for handling.
+		s_instance->OnEvent(event);
+	}
+
+	/// -----------------------------------------------------------------
+	/// ---------------------- Instance Methods -------------------------
+	/// -----------------------------------------------------------------
+
 	Application::Application()
 	{
-		// Default implementation does nothing.
+		// Ensure only one instance of Application exists at any time.
+		assert(s_instance == nullptr && "Application instance already exists!");
+
+		s_instance = this;
 	}
 
 	Application::~Application()
@@ -43,5 +68,10 @@ namespace Aurion
 	void Application::Shutdown()
 	{
 		// Default implementation does nothing.
+	}
+
+	void Application::OnEvent(const EventBase* event)
+	{
+		m_event_bus.Dispatch(event);
 	}
 }
