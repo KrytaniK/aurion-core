@@ -7,145 +7,149 @@ import Aurion.GLFW;
 namespace Aurion
 {
 	GLFW_Window::GLFW_Window()
-		: m_native_monitor(nullptr), m_native_window(nullptr), m_state({}), m_state_cached({})
+		: Window(), m_native_monitor(nullptr), m_cached_properties({})
 	{
-
+		
 	}
 
-	GLFW_Window::~GLFW_Window()
+	GLFW_Window::GLFW_Window(const WindowProperties& properties)
+		: Window(properties), m_native_monitor(nullptr), m_cached_properties(properties)
 	{
-		Close();
-	}
-
-	void GLFW_Window::Open(const WindowConfig& config)
-	{
-
-		// Copy Config data to window state
-		m_state.title = config.title;
-		m_state.width = config.width;
-		m_state.height = config.height;
-		m_state.mode = config.windowMode;
-
-		// Retrieve native monitor (primary is almost always fine)
+		// Retrieve native monitor (primary is usually fine)
 		m_native_monitor = glfwGetPrimaryMonitor();
 
 		// Configure GLFW window
-		glfwWindowHint(GLFW_RESIZABLE, config.resizable);
-		glfwWindowHint(GLFW_DECORATED, config.decorated);
-
-		// GLFW Client API (None for now)
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, properties.resizable);
+		glfwWindowHint(GLFW_DECORATED, properties.decorated);
 
 		// Create window
 		CreateNativeWindow();
 
 		// Validate window
-		if (!m_native_window)
+		if (!m_native_handle)
+		{
+			AURION_ERROR("Failed to generate native GLFW window handle!");
 			return;
+		}
 
 		// Retrieve window position
 		int x, y;
-		glfwGetWindowPos(m_native_window, &x, &y);
-		m_state.xPos = (uint16_t)x;
-		m_state.yPos = (uint16_t)y;
-
-		// Set user pointer
-		glfwSetWindowUserPointer(m_native_window, this);
-
-		// Set GLFW Callbacks
-		this->SetGLFWCallbacks();
+		glfwGetWindowPos((GLFWwindow*)m_native_handle, &x, &y);
+		m_properties.x = (uint16_t)x;
+		m_properties.y = (uint16_t)y;
 	}
 
-	void GLFW_Window::Close()
+	GLFW_Window::~GLFW_Window()
 	{
-		if (m_native_window)
+		if (m_native_handle)
 		{
 			// Reset window user pointer
-			glfwSetWindowUserPointer(m_native_window, nullptr);
+			glfwSetWindowUserPointer((GLFWwindow*)m_native_handle, nullptr);
 
 			// Destroy native window
-			glfwDestroyWindow(m_native_window);
+			glfwDestroyWindow((GLFWwindow*)m_native_handle);
 		}
-
-		// Null internal references
-		m_native_window = nullptr;
-		m_native_monitor = nullptr;
-
-		// Reset window state
-		m_state = {};
-		m_state_cached = {};
 	}
 
 	void GLFW_Window::Update(float deltaTime)
 	{
-		if (!m_native_window)
+		if (!m_native_handle)
 			return;
+
+		if (glfwWindowShouldClose((GLFWwindow*)m_native_handle))
+		{
+			// Reset window user pointer
+			glfwSetWindowUserPointer((GLFWwindow*)m_native_handle, nullptr);
+
+			// Destroy native window
+			glfwDestroyWindow((GLFWwindow*)m_native_handle);
+
+			// Reset internal state
+			m_native_handle = nullptr;
+			return;
+		}
 
 		glfwPollEvents();
 	}
 
 	void GLFW_Window::SetTitle(const char* title)
 	{
-		if (!m_native_window)
+		if (!m_native_handle)
 			return;
 
-		m_state.title = title;
-		glfwSetWindowTitle(m_native_window, m_state.title);
+		glfwSetWindowTitle((GLFWwindow*)m_native_handle, title);
 	}
 
 	void GLFW_Window::SetMode(const WindowMode& mode)
 	{
-		if (!m_native_window)
+		// Bail if there's not a valid handle or we're already in the
+		//	existing mode
+		if (!m_native_handle || m_properties.mode == mode)
 			return;
 
 		switch (mode)
 		{
-			case WINDOW_MODE_WINDOWED:
+			case WindowMode::Windowed:
 			{
-				if (m_state.mode == WINDOW_MODE_WINDOWED)
-					return;
-
-				// Pull cached state
-				m_state = m_state_cached;
+				// Pull cached properties (restoring state)
+				m_properties = m_cached_properties;
 
 				// Exit fullscreen
-				glfwSetWindowMonitor(m_native_window, NULL, (int)m_state.xPos, (int)m_state.yPos, (int)m_state.width, (int)m_state.height, NULL);
+				glfwSetWindowMonitor(
+					(GLFWwindow*)m_native_handle, 
+					NULL, // Null forces windowed mode
+					(int)m_properties.x, 
+					(int)m_properties.y, 
+					(int)m_properties.width, 
+					(int)m_properties.height, 
+					NULL // Refresh rate ignored in this scenario
+				);
 
 				return;
 			}
-			case WINDOW_MODE_FULLSCREEN_EXCLUSIVE:
+			case WindowMode::FullscreenExclusive:
 			{
-				if (m_state.mode == WINDOW_MODE_FULLSCREEN_EXCLUSIVE)
-					return;
-
 				// Cache current state
-				m_state_cached = m_state;
+				m_cached_properties = m_properties;
 
-				// Set new state mode
-				m_state.mode = mode;
+				// Update the mode via parent method
+				Window::SetMode(mode);
 
 				// Enter fullscreen exclusive
-				glfwSetWindowMonitor(m_native_window, m_native_monitor, 0, 0, (int)m_state.width, (int)m_state.height, NULL);
+				glfwSetWindowMonitor(
+					(GLFWwindow*)m_native_handle,
+					m_native_monitor, 
+					0, 
+					0, 
+					(int)m_properties.width, 
+					(int)m_properties.height, 
+					GLFW_DONT_CARE
+				);
 
 				return;
 			}
-			case WINDOW_MODE_FULLSCREEN_BORDERLESS:
+			case WindowMode::FullscreenBorderless:
 			{
-				if (m_state.mode == WINDOW_MODE_FULLSCREEN_BORDERLESS)
-					return;
-
 				// Cache current state if we weren't already in fullscreen
-				if (m_state.mode == WINDOW_MODE_WINDOWED)
-					m_state_cached = m_state;
+				if (!m_properties.fullscreen)
+					m_cached_properties = m_properties;
 
-				// Set new state mode
-				m_state.mode = mode;
+				// Update the mode via parent method
+				Window::SetMode(mode);
 
 				// Get monitor video mode
 				const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
 
 				// Enter fullscreen borderless
-				glfwSetWindowMonitor(m_native_window, m_native_monitor, 0, 0, vidmode->width, vidmode->height, vidmode->refreshRate);
+				glfwSetWindowMonitor(
+					(GLFWwindow*)m_native_handle,
+					m_native_monitor, 
+					0, 
+					0, 
+					vidmode->width, 
+					vidmode->height, 
+					vidmode->refreshRate
+				);
 
 				return;
 			}
@@ -156,187 +160,139 @@ namespace Aurion
 
 	void GLFW_Window::Resize(const uint16_t& width, const uint16_t& height)
 	{
-		if (!m_native_window)
+		if (!m_native_handle)
 			return;
 
-		glfwSetWindowSize(m_native_window, (int)width, (int)height);
+		glfwSetWindowSize((GLFWwindow*)m_native_handle, (int)width, (int)height);
 	}
 
-	void GLFW_Window::SetPos(const uint16_t& xPos, const uint16_t& yPos)
+	void GLFW_Window::MoveTo(const uint16_t& xPos, const uint16_t& yPos)
 	{
-		if (!m_native_window)
+		if (!m_native_handle)
 			return;
 
-		glfwSetWindowPos(m_native_window, (int)xPos, (int)yPos);
+		glfwSetWindowPos((GLFWwindow*)m_native_handle, (int)xPos, (int)yPos);
 	}
 
-	bool GLFW_Window::Minimize()
+	void GLFW_Window::ToggleMinimize()
 	{
-		if (!m_native_window)
-			return false;
+		if (!m_native_handle)
+			return;
+
+		// Update internal properties via parent method
+		Window::ToggleMinimize();
 
 		// Toggle minimized state
-		if (!m_state.minimized)
-			glfwIconifyWindow(m_native_window);
+		if (m_properties.minimized)
+			glfwIconifyWindow((GLFWwindow*)m_native_handle);
 		else
-			glfwRestoreWindow(m_native_window);
-
-		// Swap state
-		m_state.minimized = !m_state.minimized;
-		m_state.maximized = false;
-
-		// Return state value
-		return m_state.minimized;
+			glfwRestoreWindow((GLFWwindow*)m_native_handle);
 	}
 
-	bool GLFW_Window::Maximize()
+	void GLFW_Window::ToggleMaximize()
 	{
-		if (!m_native_window)
-			return false;
+		if (!m_native_handle)
+			return;
+
+		// Update internal properties via parent method
+		Window::ToggleMaximize();
 
 		// Toggle maximized state
-		if (!m_state.maximized)
-			glfwMaximizeWindow(m_native_window);
+		if (m_properties.maximized)
+			glfwMaximizeWindow((GLFWwindow*)m_native_handle);
 		else
-			glfwRestoreWindow(m_native_window);
-
-		// Swap state
-		m_state.maximized = !m_state.maximized;
-		m_state.minimized = false;
-
-		// Return state value
-		return m_state.maximized;
+			glfwRestoreWindow((GLFWwindow*)m_native_handle);
 	}
 
-	bool GLFW_Window::Focus()
+	void GLFW_Window::Focus()
 	{
-		if (!m_native_window || m_state.minimized)
-			return false;
+		if (!m_native_handle || m_properties.minimized)
+			return;
 
-		glfwFocusWindow(m_native_window);
+		// Update internal properties via parent method
+		Window::Focus();
 
-		return true;
+		glfwFocusWindow((GLFWwindow*)m_native_handle);
 	}
 
-	bool GLFW_Window::ToggleDecoration()
+	void GLFW_Window::ToggleDecoration()
 	{
-		if (!m_native_window)
-			return false;
+		if (!m_native_handle)
+			return;
 
-		bool decorated = glfwGetWindowAttrib(m_native_window, GLFW_DECORATED);
+		bool decorated = glfwGetWindowAttrib((GLFWwindow*)m_native_handle, GLFW_DECORATED);
 
-		glfwSetWindowAttrib(m_native_window, GLFW_DECORATED, !decorated);
-
-		return !decorated;
-	}
-
-	const char* GLFW_Window::GetTitle()
-	{
-		return m_state.title;
-	}
-
-	uint16_t GLFW_Window::GetWidth()
-	{
-		return m_state.width;
-	}
-
-	uint16_t GLFW_Window::GetHeight()
-	{
-		return m_state.height;
-	}
-
-	void* GLFW_Window::GetNativeHandle()
-	{
-		return m_native_window;
-	}
-
-	const WindowProperties& GLFW_Window::GetProperties() const
-	{
-		return m_state;
-	}
-
-	void GLFW_Window::SetInputContext(IInputContext* context)
-	{
-		m_input_context = context;
-	}
-
-	IInputContext* GLFW_Window::GetInputContext()
-	{
-		return m_input_context;
-	}
-
-	bool GLFW_Window::IsOpen()
-	{
-		return m_native_window != nullptr;
-	}
-
-	bool GLFW_Window::IsFullscreen()
-	{
-		return m_state.mode == WINDOW_MODE_FULLSCREEN_EXCLUSIVE || m_state.mode == WINDOW_MODE_FULLSCREEN_BORDERLESS;
+		glfwSetWindowAttrib(
+			(GLFWwindow*)m_native_handle, 
+			GLFW_DECORATED, 
+			!decorated
+		);
 	}
 
 	void GLFW_Window::CreateNativeWindow()
 	{
-		if (!m_native_monitor)
-			return;
-
-		switch (m_state.mode)
+		switch (m_properties.mode)
 		{
-		case WINDOW_MODE_WINDOWED:
-		{
-			// Simply create the window
-			m_native_window = glfwCreateWindow((int)m_state.width, (int)m_state.height, m_state.title, NULL, NULL);
+			case WindowMode::Windowed:
+			{
+				// Create a windowed window
+				m_native_handle = glfwCreateWindow(
+					(int)m_properties.width,
+					(int)m_properties.height,
+					m_properties.title,
+					NULL, // Don't enter fullscreen
+					NULL // Don't share resources
+				);
 
-			return;
-		}
-		case WINDOW_MODE_FULLSCREEN_EXCLUSIVE:
-		{
-			// Cache current state
-			m_state_cached = m_state;
-
-			// Create Fullscreen Exclusive window
-			m_native_window = glfwCreateWindow((int)m_state.width, (int)m_state.height, m_state.title, m_native_monitor, NULL);
-
-			return;
-		}
-		case WINDOW_MODE_FULLSCREEN_BORDERLESS:
-		{
-			// Cache current state if we weren't already in fullscreen
-			if (m_state.mode == WINDOW_MODE_WINDOWED)
-				m_state_cached = m_state;
-
-			// Cache current state
-			m_state_cached = m_state;
-
-			// Get monitor video mode
-			const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
-
-			// Set GLFW hints
-			glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);
-			glfwWindowHint(GLFW_GREEN_BITS, vidmode->greenBits);
-			glfwWindowHint(GLFW_BLUE_BITS, vidmode->blueBits);
-			glfwWindowHint(GLFW_REFRESH_RATE, vidmode->refreshRate);
-
-			// Create Windowed Fullscreen window
-			m_native_window = glfwCreateWindow(vidmode->width, vidmode->height, m_state.title, m_native_monitor, NULL);
-
-			return;
-		}
-		default:
-			return;
-		}
-	}
-
-	void GLFW_Window::SetGLFWCallbacks()
-	{
-		glfwSetWindowCloseCallback(m_native_window, [](GLFWwindow* window) {
-			GLFW_Window* _this = static_cast<GLFW_Window*>(glfwGetWindowUserPointer(window));
-
-			if (!_this || !_this->m_native_window)
 				return;
+			}
+			case WindowMode::FullscreenExclusive:
+			{
+				// Set the cached width to the default window width
+				// This will be used when restoring windowed state
+				m_cached_properties.width = 1280;
+				m_cached_properties.height = 720;
 
-			// Close the GLFWWindow wrapping object
-			_this->Close();
-		});
+				// Create a fullscreen exclusive window
+				m_native_handle = glfwCreateWindow(
+					(int)m_properties.width,
+					(int)m_properties.height,
+					m_properties.title,
+					m_native_monitor, // Enter fullscreen
+					NULL // Don't share resources
+				);
+
+				return;
+			}
+			case WindowMode::FullscreenBorderless:
+			{
+				// Set the cached width to the default window width
+				// This will be used when restoring windowed state
+				m_cached_properties.width = 1280;
+				m_cached_properties.height = 720;
+
+				// Get monitor video mode
+				const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
+
+				// Set GLFW hints
+				glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);
+				glfwWindowHint(GLFW_GREEN_BITS, vidmode->greenBits);
+				glfwWindowHint(GLFW_BLUE_BITS, vidmode->blueBits);
+				glfwWindowHint(GLFW_REFRESH_RATE, vidmode->refreshRate);
+
+				// Create Windowed Fullscreen window
+				m_native_handle = glfwCreateWindow(
+					vidmode->width, 
+					vidmode->height, 
+					m_properties.title, 
+					m_native_monitor, 
+					NULL
+				);
+
+				return;
+			}
+			default:
+				return;
+		}
 	}
 }

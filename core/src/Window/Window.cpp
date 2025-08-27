@@ -30,6 +30,7 @@ namespace Aurion
 
 	bool Window::IsOpen()
 	{
+		// Windows are open so long as a native handle exists
 		return m_native_handle != nullptr;
 	}
 
@@ -53,6 +54,11 @@ namespace Aurion
 		m_properties.title = title;
 	}
 
+	void Window::SetMode(const WindowMode& mode)
+	{
+		m_properties.mode = mode;
+	}
+
 	void Window::Resize(const uint16_t& width, const uint16_t& height)
 	{
 		m_properties.width = width;
@@ -65,7 +71,7 @@ namespace Aurion
 		m_properties.y = y;
 	}
 
-	void Window::ToggleFocus()
+	void Window::Focus()
 	{
 		m_properties.focused = !m_properties.focused;
 	}
