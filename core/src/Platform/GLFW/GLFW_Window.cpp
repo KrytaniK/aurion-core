@@ -253,10 +253,17 @@ namespace Aurion
 				m_cached_properties.width = 1280;
 				m_cached_properties.height = 720;
 
+				// Grab the monitor video mode
+				const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
+
+				// Update properties
+				m_properties.width = static_cast<uint16_t>(vidmode->width);
+				m_properties.height = static_cast<uint16_t>(vidmode->height);
+
 				// Create a fullscreen exclusive window
 				m_native_handle = glfwCreateWindow(
-					(int)m_properties.width,
-					(int)m_properties.height,
+					vidmode->width,
+					vidmode->height,
 					m_properties.title,
 					m_native_monitor, // Enter fullscreen
 					NULL // Don't share resources
@@ -273,6 +280,10 @@ namespace Aurion
 
 				// Get monitor video mode
 				const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
+
+				// Update properties
+				m_properties.width = static_cast<uint16_t>(vidmode->width);
+				m_properties.height = static_cast<uint16_t>(vidmode->height);
 
 				// Set GLFW hints
 				glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);
