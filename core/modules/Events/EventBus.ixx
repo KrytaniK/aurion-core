@@ -34,7 +34,7 @@ export namespace Aurion
 		EventBus() = default;
 		~EventBus() = default;
 
-		void Register(const EventCategoryID& id, const EventRegisterCallback& callback, void* context);
+		void Register(const EventCategoryID& id, const EventRegisterCallback& callback, void* context = nullptr);
 		void UnRegister(const EventCategoryID& id);
 
 		void SwapRegister(const EventCategoryID& id, const EventRegisterCallback& callback, void* context);
