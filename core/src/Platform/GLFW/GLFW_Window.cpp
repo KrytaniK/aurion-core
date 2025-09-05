@@ -244,6 +244,9 @@ namespace Aurion
 					NULL // Don't share resources
 				);
 
+				if (!m_native_handle)
+					AURION_ERROR("Failed to create windowed GLFW window");
+
 				return;
 			}
 			case WindowMode::FullscreenExclusive:
@@ -268,6 +271,9 @@ namespace Aurion
 					m_native_monitor, // Enter fullscreen
 					NULL // Don't share resources
 				);
+
+				if (!m_native_handle)
+					AURION_ERROR("Failed to create fullscreen exclusive GLFW window");
 
 				return;
 			}
@@ -299,6 +305,9 @@ namespace Aurion
 					m_native_monitor, 
 					NULL
 				);
+
+				if (!m_native_handle)
+					AURION_ERROR("Failed to create fullscreen borderless GLFW window");
 
 				return;
 			}

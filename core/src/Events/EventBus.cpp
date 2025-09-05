@@ -68,7 +68,7 @@ namespace Aurion
 		AURION_ERROR("Failed to swap event callback: Event category [%d] not found!", id);
 	}
 
-	void EventBus::Dispatch(const EventBase* event)
+	void EventBus::Dispatch(EventBase* event)
 	{
 		// Find the register in the array
 		for (uint16_t i = 0; i < m_registry.count; i++)

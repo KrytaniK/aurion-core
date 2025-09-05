@@ -6,6 +6,8 @@ module;
 
 export module Aurion.Window:Events;
 
+import :Window;
+import :Driver;
 import Aurion.Events;
 
 export namespace Aurion
@@ -15,9 +17,7 @@ export namespace Aurion
 	{
 		AC_WIN_EVENT_CREATE		= 1 << 0,
 		AC_WIN_EVENT_CLOSE		= 1 << 1,
-		AC_WIN_EVENT_RESIZE		= 1 << 2,
-		AC_WIN_EVENT_FOCUS		= 1 << 3,
-		AC_WIN_EVENT_MOVE		= 1 << 4,
+		AC_WIN_EVENT_GET		= 1 << 2
 	} WindowEventTypes;
 
 	// Window Category Base Event
@@ -25,12 +25,13 @@ export namespace Aurion
 	{
 		WindowEvent() { this->category = AC_EVENT_CATEGORY_WINDOW; };
 		WindowEvent(const WindowEventTypes& type) : WindowEvent() { this->type = type; };
-		int window_id = -1;
+		uint64_t id;
 	};
 
 	struct AURION_API WindowCreateEvent : WindowEvent
 	{
 		WindowCreateEvent() : WindowEvent(AC_WIN_EVENT_CREATE) {};
+		WindowProperties properties;
 	};
 
 	struct AURION_API WindowCloseEvent : WindowEvent
@@ -38,23 +39,10 @@ export namespace Aurion
 		WindowCloseEvent() : WindowEvent(AC_WIN_EVENT_CLOSE) {};
 	};
 
-	struct AURION_API WindowResizeEvent : WindowEvent
+	struct AURION_API WindowGetEvent : WindowEvent
 	{
-		WindowResizeEvent() : WindowEvent(AC_WIN_EVENT_RESIZE) {};
-		uint16_t width = 0;
-		uint16_t height = 0;
-	};
-
-	struct AURION_API WindowFocusEvent : WindowEvent
-	{
-		WindowFocusEvent() : WindowEvent(AC_WIN_EVENT_FOCUS) {};
-		bool focused = false;
-	};
-
-	struct AURION_API WindowMoveEvent : WindowEvent
-	{
-		WindowMoveEvent() : WindowEvent(AC_WIN_EVENT_MOVE) {};
-		uint16_t x = 0;
-		uint16_t y = 0;
+		WindowGetEvent() : WindowEvent(AC_WIN_EVENT_GET) {};
+		const char* title = nullptr;
+		WindowHandle out_handle;
 	};
 }
