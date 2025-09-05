@@ -10,19 +10,20 @@ namespace Aurion
 	/// ------------------------ Static Methods -------------------------
 	/// -----------------------------------------------------------------
 
-	void Application::DispatchEvent(const EventBase* event)
+	void Application::DispatchEvent(EventBase* event)
 	{
 		assert(s_instance != nullptr && "No valid application exists!");
+		assert(event != nullptr && "Event pointer must be valid");
 
 		// Forward the event to the application instance for handling.
 		s_instance->OnEvent(event);
 	}
 
-	const EventBus& Application::Events()
+	EventBus* Application::Events()
 	{
 		assert(s_instance != nullptr && "No valid application exists!");
 
-		return s_instance->m_event_bus;
+		return &s_instance->m_event_bus;
 	}
 
 	/// -----------------------------------------------------------------
@@ -73,7 +74,7 @@ namespace Aurion
 		// Default implementation does nothing.
 	}
 
-	void Application::OnEvent(const EventBase* event)
+	void Application::OnEvent(EventBase* event)
 	{
 		m_event_bus.Dispatch(event);
 	}

@@ -24,6 +24,7 @@ export namespace Aurion
 		virtual WindowHandle OpenWindow(const WindowProperties& properties) = 0;
 		virtual bool CloseWindow(const WindowHandle& handle) = 0;
 		virtual bool CloseWindow(const char* title) = 0;
+		virtual bool CloseWindow(const uint64_t& id) = 0;
 
 		virtual WindowHandle GetWindow(const char* title) = 0;
 		virtual WindowHandle GetWindow(const uint64_t& id) = 0;

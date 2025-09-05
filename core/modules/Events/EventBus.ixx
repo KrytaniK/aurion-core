@@ -11,7 +11,7 @@ import :Event;
 export namespace Aurion
 {
 	typedef uint16_t EventCategoryID;
-	typedef void(*EventRegisterCallback)(const EventBase* event, void* context);
+	typedef void(*EventRegisterCallback)(EventBase* event, void* context);
 
 	constexpr uint8_t MAX_EVENT_REGISTERS = 16;
 
@@ -39,7 +39,7 @@ export namespace Aurion
 
 		void SwapRegister(const EventCategoryID& id, const EventRegisterCallback& callback, void* context);
 
-		void Dispatch(const EventBase* event);
+		void Dispatch(EventBase* event);
 		 
 	private:
 		EventBusRegistry m_registry;

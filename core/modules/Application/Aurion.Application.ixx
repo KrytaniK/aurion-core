@@ -28,8 +28,8 @@ export namespace Aurion
 		inline static Application* s_instance = nullptr;
 
 	public:
-		static void DispatchEvent(const EventBase* event);
-		static const EventBus& Events();
+		static void DispatchEvent(EventBase* event);
+		static EventBus* Events();
 
 	public:
 		Application();
@@ -42,7 +42,7 @@ export namespace Aurion
 		virtual void Run() override;
 		virtual void Shutdown() override;
 
-		virtual void OnEvent(const EventBase* event);
+		virtual void OnEvent(EventBase* event);
 
 	protected:
 		EventBus m_event_bus;
