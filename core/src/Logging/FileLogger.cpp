@@ -43,11 +43,11 @@ namespace Aurion
 		size_t prefix_size = 0;
 		switch (verbosity)
 		{
-		case LL_TRACE: prefix_size = strlen(c_log_prefix_trace); break;
-		case LL_INFO: prefix_size = strlen(c_log_prefix_info); break;
-		case LL_WARN: prefix_size = strlen(c_log_prefix_warn); break;
-		case LL_ERROR: prefix_size = strlen(c_log_prefix_error); break;
-		case LL_CRITICAL: prefix_size = strlen(c_log_prefix_critical); break;
+		case AC_LOG_LEVEL_TRACE: prefix_size = strlen(c_log_prefix_trace); break;
+		case AC_LOG_LEVEL_INFO: prefix_size = strlen(c_log_prefix_info); break;
+		case AC_LOG_LEVEL_WARN: prefix_size = strlen(c_log_prefix_warn); break;
+		case AC_LOG_LEVEL_ERROR: prefix_size = strlen(c_log_prefix_error); break;
+		case AC_LOG_LEVEL_CRITICAL: prefix_size = strlen(c_log_prefix_critical); break;
 		default: prefix_size = 0;
 		}
 
@@ -63,11 +63,11 @@ namespace Aurion
 		// Copy prefix
 		switch (verbosity)
 		{
-		case LL_TRACE: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_trace, prefix_size); break;
-		case LL_INFO: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_info, prefix_size); break;
-		case LL_WARN: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_warn, prefix_size); break;
-		case LL_ERROR: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_error, prefix_size); break;
-		case LL_CRITICAL: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_critical, prefix_size); break;
+		case AC_LOG_LEVEL_TRACE: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_trace, prefix_size); break;
+		case AC_LOG_LEVEL_INFO: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_info, prefix_size); break;
+		case AC_LOG_LEVEL_WARN: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_warn, prefix_size); break;
+		case AC_LOG_LEVEL_ERROR: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_error, prefix_size); break;
+		case AC_LOG_LEVEL_CRITICAL: strncpy_s(out_buffer, prefix_size + 1, c_log_prefix_critical, prefix_size); break;
 		default: break;
 		}
 

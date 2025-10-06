@@ -19,6 +19,7 @@ export namespace Aurion
 		AC_EVENT_CATEGORY_FILE = 1 << 2,
 		AC_EVENT_CATEGORY_PLUGIN = 1 << 3,
 		AC_EVENT_CATEGORY_INPUT = 1 << 4,
+		AC_EVENT_CATEGORY_LOG = 1 << 5,
 	} EventCategories;
 
 	// TODO: Use a date-time utility class instead of time_t.
