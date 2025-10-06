@@ -12,24 +12,6 @@ import Aurion.GLFW;
 
 namespace Aurion
 {
-	GLFWDriver::GLFWDriver(const int& client_api)
-		: m_max_window_count(1), m_windows(nullptr)
-	{
-		glfwSetErrorCallback([](int err, const char* desc) {
-			AURION_ERROR("[GLFW] Error (%d)  %s", err, desc);
-		});
-
-		if (glfwInit() != GLFW_TRUE)
-		{
-			AURION_ERROR("Failed to initialize GLFW!");
-		}
-
-		glfwWindowHint(GLFW_CLIENT_API, client_api);
-
-		// Don't attach event handlers, since the windows
-		//	array is not initialized
-	}
-
 	GLFWDriver::GLFWDriver(const int& client_api, const size_t& max_window_count)
 		: m_max_window_count(max_window_count), m_windows(nullptr)
 	{
@@ -45,14 +27,17 @@ namespace Aurion
 		glfwWindowHint(GLFW_CLIENT_API, client_api);
 
 		// Allocate enough space for the max # of windows
-		m_windows = new GLFW_Window[max_window_count];
+		m_windows = new GLFW_Window[m_max_window_count];
 
-		// Attach window event handler
-		Application::Events()->Register(
-			EventCategories::AC_EVENT_CATEGORY_WINDOW,
-			&GLFWDriver::HandleEvent,
-			this
-		);
+		// Attach window event handler if an application instance exists
+		if (Application::s_instance)
+		{
+			Application::Events()->Register(
+				EventCategories::AC_EVENT_CATEGORY_WINDOW,
+				&GLFWDriver::HandleEvent,
+				this
+			);
+		}
 	}
 
 	GLFWDriver::~GLFWDriver()

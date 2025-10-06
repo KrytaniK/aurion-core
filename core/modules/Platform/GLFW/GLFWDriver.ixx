@@ -18,8 +18,7 @@ export namespace Aurion
 		static void HandleEvent(EventBase* event, void* context);
 
 	public:
-		GLFWDriver(const int& client_api = 0);
-		GLFWDriver(const int& client_api, const size_t& max_window_count);
+		GLFWDriver(const int& client_api = 0, const size_t& max_window_count = 1);
 		virtual ~GLFWDriver();
 
 		virtual WindowHandle OpenWindow(const WindowProperties& properties) override;

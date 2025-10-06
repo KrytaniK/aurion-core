@@ -11,7 +11,7 @@ export namespace Aurion
 {
 	// Default Event Categories (use is optional)
 	// Custom categories can be defined by the user
-	typedef enum AURION_API EventCategoreies : uint16_t
+	typedef enum AURION_API EventCategories : uint16_t
 	{
 		AC_EVENT_CATEGORY_NONE = 0,
 		AC_EVENT_CATEGORY_APPLICATION = 1 << 0,
