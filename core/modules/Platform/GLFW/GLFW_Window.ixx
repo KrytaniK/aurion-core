@@ -6,8 +6,6 @@ module;
 
 export module Aurion.GLFW:Window;
 
-import :InputContext;
-
 import Aurion.Window;
 
 export namespace Aurion
