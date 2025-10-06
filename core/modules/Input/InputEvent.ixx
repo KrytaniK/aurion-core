@@ -10,7 +10,7 @@ import Aurion.Events;
 
 export namespace Aurion
 {
-	typedef enum InputEventTypes : uint16_t
+	typedef enum AURION_API InputEventTypes : uint16_t
 	{
 		AC_INPUT_EVENT_NONE					= 0,
 		AC_INPUT_EVENT_TOUCH				= 1 << 0, // Touch input event (for touchscreens, touchpads, etc.)
@@ -22,7 +22,7 @@ export namespace Aurion
 		AC_INPUT_EVENT_AXIS_4D				= 1 << 6, // 4-dimensional axis movement (for advanced 3D controllers, etc.)
 	} InputEventTypes;
 
-	typedef enum InputButtonStates : uint8_t
+	typedef enum AURION_API InputButtonStates : uint8_t
 	{
 		AC_BUTTON_STATE_NONE		= 0,
 		AC_BUTTON_STATE_PRESSED		= 1,
