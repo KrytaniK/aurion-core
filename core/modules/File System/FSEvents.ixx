@@ -17,9 +17,10 @@ export namespace Aurion
 	{
 		AC_FILE_EVENT_NONE				= 0,
 		AC_FILE_EVENT_OPEN				= 1 << 0,
-		AC_FILE_EVENT_CREATE			= 1 << 1,
-		AC_FILE_EVENT_DELETE			= 1 << 2,
-		AC_FILE_EVENT_RENAME			= 1 << 3,
+		AC_FILE_EVENT_CLOSE				= 1 << 1,
+		AC_FILE_EVENT_CREATE			= 1 << 2,
+		AC_FILE_EVENT_DELETE			= 1 << 3,
+		AC_FILE_EVENT_RENAME			= 1 << 4,
 	} FileEventTypes;
 
 	struct AURION_API FileEvent : public EventBase
@@ -37,6 +38,11 @@ export namespace Aurion
 		FileOpenEvent() : FileEvent(AC_FILE_EVENT_OPEN) {};
 	
 		FSFileHandle* out_handle = nullptr;
+	};
+
+	struct AURION_API FileCloseEvent : public FileEvent
+	{
+		FileCloseEvent() : FileEvent(AC_FILE_EVENT_CLOSE) {};
 	};
 
 	struct AURION_API FileCreateEvent : public FileEvent
