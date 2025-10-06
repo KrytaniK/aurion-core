@@ -29,11 +29,11 @@ export namespace Aurion
 
 	typedef AURION_API enum LogLevel
 	{
-		LL_TRACE = 0x00,
-		LL_INFO = 0x01,
-		LL_WARN = 0x02,
-		LL_ERROR = 0x04,
-		LL_CRITICAL = 0x08,
+		AC_LOG_LEVEL_TRACE = 0x00,
+		AC_LOG_LEVEL_INFO = 0x01,
+		AC_LOG_LEVEL_WARN = 0x02,
+		AC_LOG_LEVEL_ERROR = 0x04,
+		AC_LOG_LEVEL_CRITICAL = 0x08,
 	} LogLevel;
 
 	class AURION_API ILogger

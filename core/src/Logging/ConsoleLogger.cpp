@@ -51,27 +51,27 @@ namespace Aurion
 
 		switch (verbosity)
 		{
-			case LL_TRACE:
+			case AC_LOG_LEVEL_TRACE:
 			{
 				std::cout << c_log_prefix_trace << c_text_color_white << out_buffer << c_text_color_end << std::endl;
 				break;
 			}
-			case LL_INFO:
+			case AC_LOG_LEVEL_INFO:
 			{
 				std::cout << c_log_prefix_info << c_text_color_green << out_buffer << c_text_color_end << std::endl;
 				break;
 			}
-			case LL_WARN:
+			case AC_LOG_LEVEL_WARN:
 			{
 				std::cout << c_log_prefix_warn << c_text_color_yellow << out_buffer << c_text_color_end << std::endl;
 				break;
 			}
-			case LL_ERROR:
+			case AC_LOG_LEVEL_ERROR:
 			{
 				std::cout << c_log_prefix_error << c_text_color_red << out_buffer << c_text_color_end << std::endl;
 				break;
 			}
-			case LL_CRITICAL:
+			case AC_LOG_LEVEL_CRITICAL:
 			{
 				std::cout << c_log_prefix_critical << c_text_bg_red << c_text_color_white << " " << out_buffer << " " << c_text_color_end << std::endl;
 				break;
