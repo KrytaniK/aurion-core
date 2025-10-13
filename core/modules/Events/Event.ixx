@@ -1,9 +1,10 @@
 module;
 
-#include <macros/AurionExport.h>
 #include <time.h>
 
 export module Aurion.Events:Event;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 

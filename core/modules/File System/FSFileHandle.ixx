@@ -1,10 +1,8 @@
-module;
-
-#include <macros/AurionExport.h>
-#include <cstdint>
-
 export module Aurion.FileSystem:FileHandle;
 
+import <macros/AurionExport.h>;
+
+import Aurion.Types;
 import :FileData;
 
 export namespace Aurion
@@ -13,9 +11,9 @@ export namespace Aurion
 
 	struct AURION_API FSFileInfo
 	{
-		uint64_t creation_time = 0;
-		uint64_t last_modified_time = 0;
-		uint64_t last_accessed_time = 0;
+		u64 creation_time = 0;
+		u64 last_modified_time = 0;
+		u64 last_accessed_time = 0;
 		char* name = nullptr;
 		char* extension = nullptr;
 	};
@@ -49,7 +47,7 @@ export namespace Aurion
 		IFileSystem* m_file_system;
 		const char* m_path;
 		FSFileData* m_file_data;
-		uint64_t m_system_handle;
+		u64 m_system_handle;
 		size_t m_reference_count;
 		FSFileInfo m_info;
 	};

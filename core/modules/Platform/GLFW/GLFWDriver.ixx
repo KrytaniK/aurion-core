@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.GLFW:Driver;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 import Aurion.Window;

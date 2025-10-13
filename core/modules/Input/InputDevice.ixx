@@ -1,42 +1,46 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <cstdint>
-
 export module Aurion.Input:Device;
 
-import :Layout;
-import :Control;
+import <macros/AurionExport.h>;
+
+import Aurion.Types;
+import :State;
 
 export namespace Aurion
 {
-	struct AURION_API InputDeviceInfo
+	struct AURION_API InputDeviceSpec
 	{
-		uint64_t id = 0;
-		uint64_t classification = 0; // Classification Identifier, as an unsigned 64-bit integer (such as gamepad, keyboard, etc.)
-		const char* alias = nullptr;
-		const char* product_name = nullptr; // Name of the product
-		const char* product_manufacturer = nullptr; // Name of the manufacturer
-		const char* product_version = nullptr; // Product version, as a string
-		const char* product_interface = nullptr; // Name of the interface making the device available (such as HID).
-		const char* product_ext = nullptr; // Extension string for interface-specific device capabilities (such as HID information)
+		u64 id = 0;
+		u64 classification = 0; // Unique classification identifier (think: gamepad, keyboard, etc.)
+		const char* alias = nullptr; // Alias for the device, such as "My Keyboard" or "Logitech Gamepad F310"
+		const char* p_name = nullptr; // Name of the product as provided by the device
+		const char* p_manufacturer = nullptr; // Name of the manufacturer 
+		const char* p_version = nullptr; // Product version, as a string 
+		const char* p_interface = nullptr; // Name of the interface making the device available (such as HID).
+		const char* p_ext = nullptr; // Extension string for interface-specific device capabilities (such as HID information)
 	};
-	
-	class AURION_API IInputDevice
+
+	typedef AURION_API u8 InputDeviceMemReqs;
+
+	struct AURION_API InputDeviceCapabilities
+	{
+		u8 button_count = 0; // Number of buttons on this device
+		u8 axis_count = 0; // Number of axes on this device
+		u8 pov_count = 0; // Number of POV hats on this device
+	};
+
+	class AURION_API InputDevice : public InputState
 	{
 	public:
-		virtual ~IInputDevice() = default;
+		InputDevice(const InputDeviceSpec& spec, const InputDeviceCapabilities& caps, const InputDeviceMemReqs& mem_reqs);
+		~InputDevice() = default;
 
-		// Retrieve basic device information
-		virtual const InputDeviceInfo& GetInfo() = 0;
+		const InputDeviceSpec& GetSpecification();
+		const InputDeviceMemReqs& GetMemoryRequirements();
+		const InputDeviceCapabilities& GetCapabilities();
 
-		virtual const uint32_t& GetLayoutID() = 0;
-
-		// Searches for the control, provided the input_code for that control
-		virtual IInputControl* GetControl(const uint64_t& input_code) = 0;
-
-		// Maps existing controls to device memory
-		virtual bool Map(const InputDeviceLayout& layout) = 0;
+	private:
+		InputDeviceSpec m_specs;
+		InputDeviceMemReqs m_mem_reqs;
+		InputDeviceCapabilities m_caps;
 	};
 }

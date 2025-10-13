@@ -1,4 +1,4 @@
-import Aurion.Plugin;
+module Aurion.Plugin;
 
 namespace Aurion
 {

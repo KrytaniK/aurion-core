@@ -1,11 +1,12 @@
-
+module;
 
 #include <time.h>
-#include <stdio.h>
-#include <string.h>
+
+module Aurion.Events;
 
 import Aurion.Types;
-import Aurion.Events;
+import <stdio.h>;
+import <string.h>;
 
 namespace Aurion
 {

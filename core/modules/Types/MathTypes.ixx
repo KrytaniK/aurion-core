@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Types:Math;
+
+import <macros/AurionExport.h>;
 
 import :Primitives;
 

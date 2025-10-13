@@ -1,9 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-#include <cstdint>
-
 export module Aurion.Memory:Allocator;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 

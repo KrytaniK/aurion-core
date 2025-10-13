@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Log:Interface;
+
+import <macros/AurionExport.h>;
 
 export namespace Aurion
 {

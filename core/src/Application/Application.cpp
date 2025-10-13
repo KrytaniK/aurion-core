@@ -1,8 +1,7 @@
-#include <macros/AurionLog.h>
+module Aurion.Application;
 
-#include <cassert>
-
-import Aurion.Application;
+import <macros/AurionLog.h>;
+import <cassert>;
 
 namespace Aurion 
 {

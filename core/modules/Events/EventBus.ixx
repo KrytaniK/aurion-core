@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Events:EventBus;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 import :Event;

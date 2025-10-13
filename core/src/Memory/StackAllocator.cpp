@@ -1,7 +1,7 @@
-#include <cstdlib>
-#include <cstdint>
+module Aurion.Memory;
 
-import Aurion.Memory;
+import <cstdlib>;
+import <cstdint>;
 
 namespace Aurion
 {

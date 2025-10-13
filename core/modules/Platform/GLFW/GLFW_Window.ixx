@@ -1,10 +1,7 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <GLFW/glfw3.h>
-
 export module Aurion.GLFW:Window;
+
+import <macros/AurionExport.h>;
+import <GLFW/glfw3.h>;
 
 import Aurion.Types;
 import Aurion.Window;

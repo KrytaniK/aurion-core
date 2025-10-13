@@ -1,15 +1,10 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <cstdint>
-
 export module Aurion.FileSystem:Events;
 
+import Aurion.Types;
 import Aurion.Events;
 import :FileHandle;
 
-// TODO: Change FSFileHandle to be FSHandle.
+import <macros/AurionExport.h>;
 
 export namespace Aurion
 {
@@ -28,7 +23,7 @@ export namespace Aurion
 		FileEvent() { this->category = AC_EVENT_CATEGORY_FILE; };
 		FileEvent(const FileEventTypes& type) : FileEvent() { this->type = type; };
 		
-		uint64_t handle = 0; // OS handle of the file or directory that triggered the event
+		u64 handle = 0; // OS handle of the file or directory that triggered the event
 		const char* path = nullptr; // Path of the file or directory that triggered the event
 		bool is_directory = false; // True if the event is for a directory, false if it's for a file
 	};

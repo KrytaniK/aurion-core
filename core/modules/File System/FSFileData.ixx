@@ -1,11 +1,8 @@
-module;
-
-#include <macros/AurionExport.h>
-#include <cstdint>
-#include <cstdlib>
-#include <utility>
-
 export module Aurion.FileSystem:FileData;
+
+import <macros/AurionExport.h>;
+import <cstdlib>;
+import <utility>;
 
 export namespace Aurion
 {

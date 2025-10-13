@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Log:Events;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 import Aurion.Events;
