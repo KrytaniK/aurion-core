@@ -37,8 +37,20 @@ namespace Aurion
 		assert(size > 0 && "InputState: Write operation size must be greater than 0");
 		assert(data && "InputState: Data pointer is null");
 
-		// Perform the memory copy to update the state
+		// Copy data from in-buffer to input state
 		memcpy(m_start_ptr + offset, data, size);
+	}
+
+	void InputState::Read(const InputStateBlock& block, void* out_data, const u8& size) const
+	{
+		if (!this->IsValidBlock(block))
+		{
+			AURION_ERROR("[InputState] Failed to read from memory: Provided State Block Is Invalid!");
+			return;
+		}
+
+		// Copy data from input state to out-buffer.
+		memcpy(out_data, m_start_ptr + block.offset, size);
 	}
 
 	bool InputState::IsValidBlock(const InputStateBlock& block) const

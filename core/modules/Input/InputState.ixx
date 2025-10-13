@@ -25,6 +25,8 @@ export namespace Aurion
 
 		void Write(const void* data, const u8& offset, const u8& size);
 
+		void Read(const InputStateBlock& block, void* out_data, const u8& size) const;
+
 		bool IsValidBlock(const InputStateBlock& block) const;
 
 	private:
