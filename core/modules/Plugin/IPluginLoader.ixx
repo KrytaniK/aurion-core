@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Plugin:Loader;
+
+import <macros/AurionExport.h>;
 
 import :Plugin;
 

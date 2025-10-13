@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Plugin:Context;
+
+import <macros/AurionExport.h>;
 
 export namespace Aurion
 {

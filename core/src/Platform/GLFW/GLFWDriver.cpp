@@ -1,15 +1,14 @@
-#include <macros/AurionLog.h>
-
-#include <string>
-#include <iostream>
-#include <cassert>
-
-#include <GLFW/glfw3.h>
+module Aurion.GLFW;
 
 import Aurion.Application;
 import Aurion.Types;
 import Aurion.Window;
-import Aurion.GLFW;
+
+import <macros/AurionLog.h>;
+import <GLFW/glfw3.h>;
+import <iostream>;
+import <cassert>;
+import <string>;
 
 namespace Aurion
 {

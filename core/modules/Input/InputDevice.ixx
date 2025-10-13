@@ -1,10 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <cstdint>
-
 export module Aurion.Input:Device;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 import :State;

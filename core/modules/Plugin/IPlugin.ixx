@@ -1,9 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Plugin:Plugin;
 
+import <macros/AurionExport.h>;
 import <memory>;
 import <cstdint>;
 

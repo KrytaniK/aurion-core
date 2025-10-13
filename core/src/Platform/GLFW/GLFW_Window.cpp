@@ -1,9 +1,8 @@
-#include <macros/AurionLog.h>
-
-#include <GLFW/glfw3.h>
+module Aurion.GLFW;
 
 import Aurion.Types;
-import Aurion.GLFW;
+import <macros/AurionLog.h>;
+import <GLFW/glfw3.h>;
 
 namespace Aurion
 {

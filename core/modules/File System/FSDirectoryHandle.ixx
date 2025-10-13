@@ -1,12 +1,9 @@
-module;
-
-#include <macros/AurionExport.h>
-#include <cstdint>
-
 export module Aurion.FileSystem:DirectoryHandle;
 
-import Aurion.Memory;
+import <macros/AurionExport.h>;
 
+import Aurion.Types;
+import Aurion.Memory;
 import :FileHandle;
 
 export namespace Aurion
@@ -45,7 +42,7 @@ export namespace Aurion
 		void FindAll_Recursive(const char* extension, FSFileCollection& out_collection, size_t& created_count);
 
 	private:
-		uint64_t m_system_handle;
+		u64 m_system_handle;
 		IFileSystem* m_file_system;
 		FSDirectoryInfo m_info;
 		FSFileHandle* m_files;

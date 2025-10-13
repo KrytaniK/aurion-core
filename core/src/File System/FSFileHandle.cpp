@@ -1,4 +1,4 @@
-import Aurion.FileSystem;
+module Aurion.FileSystem;
 
 namespace Aurion
 {

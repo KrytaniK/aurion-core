@@ -1,9 +1,8 @@
-#include <cstdarg>
-#include <cstdio>
+module Aurion.Log;
 
-#include <iostream>
-
-import Aurion.Log;
+import <cstdarg>;
+import <cstdio>;
+import <iostream>;
 
 namespace Aurion
 {

@@ -1,9 +1,9 @@
+module Aurion.Plugin;
+
 #ifdef AURION_PLATFORM_WINDOWS
 
-#include <Windows.h>
-#include <iostream>
-
-import Aurion.Plugin;
+import <Windows.h>;
+import <iostream>;
 
 namespace Aurion
 {

@@ -1,10 +1,7 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <cstdint>
-
 export module Aurion.Types:Primitives;
+
+import <macros/AurionExport.h>;
+import <cstdint>;
 
 export namespace Aurion
 {

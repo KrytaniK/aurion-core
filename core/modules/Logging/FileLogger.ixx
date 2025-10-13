@@ -1,11 +1,8 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Log:FileLogger;
 
-import Aurion.FileSystem;
+import <macros/AurionExport.h>;
 
+import Aurion.FileSystem;
 import :Interface;
 
 export namespace Aurion

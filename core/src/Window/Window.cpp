@@ -1,7 +1,7 @@
-#include <macros/AurionLog.h>
+module Aurion.Window;
 
 import Aurion.Types;
-import Aurion.Window;
+import <macros/AurionLog.h>;
 
 namespace Aurion
 {

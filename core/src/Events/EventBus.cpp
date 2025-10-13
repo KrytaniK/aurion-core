@@ -1,7 +1,7 @@
-#include <macros/AurionLog.h>
+module Aurion.Events;
 
 import Aurion.Types;
-import Aurion.Events;
+import <macros/AurionLog.h>;
 
 namespace Aurion
 {

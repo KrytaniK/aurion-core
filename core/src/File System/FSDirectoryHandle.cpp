@@ -1,7 +1,7 @@
-#include <iostream>
-#include <cstring>
+module Aurion.FileSystem;
 
-import Aurion.FileSystem;
+import <iostream>;
+import <cstring>;
 
 namespace Aurion
 {

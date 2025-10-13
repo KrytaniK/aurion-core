@@ -1,10 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <cstdint>
-
 export module Aurion.Window:Events;
+
+import <macros/AurionExport.h>;
 
 import Aurion.Types;
 import Aurion.Events;

@@ -1,11 +1,10 @@
+module Aurion.FileSystem;
 
-#include <cstdint>
-#include <utility>
-#include <iostream>
+import Aurion.Types;
 
-#include <Windows.h>
-
-import Aurion.FileSystem;
+import <utility>;
+import <iostream>;
+import <Windows.h>;
 
 namespace Aurion
 {
@@ -19,14 +18,14 @@ namespace Aurion
 
 	}
 
-	uint64_t WindowsFileSystem::GenerateHandle(const char* path, const bool& force_create)
+	u64 WindowsFileSystem::GenerateHandle(const char* path, const bool& force_create)
 	{
 		DWORD access = IsFilePath(path) ? GENERIC_READ | GENERIC_WRITE : GENERIC_READ;
 		DWORD attributes = IsFilePath(path) ? FILE_ATTRIBUTE_NORMAL : FILE_ATTRIBUTE_DIRECTORY;
 
 		// If user requested the file not be force created
 		if (!force_create)
-			return (uint64_t)CreateFileA(path, access, 0, NULL, OPEN_EXISTING, attributes, NULL);
+			return (u64)CreateFileA(path, access, 0, NULL, OPEN_EXISTING, attributes, NULL);
 
 		// Otherwise, split the path into chunks, and create any required directories
 		size_t path_length = strlen(path);
@@ -47,7 +46,7 @@ namespace Aurion
 				// If the directory doesn't exist, attempt to create it. Bail if this
 				//	attempt fails.
 				if (!DirectoryExists(buffer) && !CreateDirectoryA(buffer, NULL))
-					return (uint64_t)(INVALID_HANDLE_VALUE);
+					return (u64)(INVALID_HANDLE_VALUE);
 
 				// Free the temporary buffer
 				delete[] buffer;
@@ -57,7 +56,7 @@ namespace Aurion
 		}
 
 		// Only create the file once all parent directories exist
-		return (uint64_t)CreateFileA(path, access, 0, NULL, CREATE_ALWAYS, attributes, NULL);
+		return (u64)CreateFileA(path, access, 0, NULL, CREATE_ALWAYS, attributes, NULL);
 	}
 
 	FSFileHandle WindowsFileSystem::OpenFile(const char* path, const bool& force_create)
@@ -208,7 +207,7 @@ namespace Aurion
 		return true;
 	}
 
-	bool WindowsFileSystem::CloseFile(const uint64_t& handle)
+	bool WindowsFileSystem::CloseFile(const u64& handle)
 	{
 		return CloseHandle((HANDLE)handle);
 	}
@@ -258,7 +257,7 @@ namespace Aurion
 			CloseHandle(system_handle);
 	}
 
-	void WindowsFileSystem::GetFileInfo(const char* path, FSFileInfo& out_info, const uint64_t& handle, const bool& force_close)
+	void WindowsFileSystem::GetFileInfo(const char* path, FSFileInfo& out_info, const u64& handle, const bool& force_close)
 	{
 		HANDLE system_handle = (HANDLE)handle;
 
@@ -313,7 +312,7 @@ namespace Aurion
 			return;
 
 		// Convert file size to 64-bit uinteger
-		uint64_t size = file_size.QuadPart;
+		u64 size = file_size.QuadPart;
 
 		// Allocate enough space for the data
 		if (!out_data->Allocate((size_t)size))
@@ -335,7 +334,7 @@ namespace Aurion
 		((char*)out_data->Get())[size] = '\0';
 	}
 
-	void WindowsFileSystem::Read(const uint64_t& handle, FSFileData* out_data)
+	void WindowsFileSystem::Read(const u64& handle, FSFileData* out_data)
 	{
 		// Create handle
 		HANDLE system_handle = (HANDLE)handle;
@@ -349,7 +348,7 @@ namespace Aurion
 			return;
 
 		// Convert file size to 64-bit uinteger
-		uint64_t size = file_size.QuadPart + 1;
+		u64 size = file_size.QuadPart + 1;
 
 		// Allocate enough space for the data
 		if (!out_data->Allocate((size_t)size))
@@ -396,7 +395,7 @@ namespace Aurion
 		}
 
 		uint8_t* data = (uint8_t*)buffer;
-		uint64_t remaining = size;
+		u64 remaining = size;
 		DWORD bytes_written = 0;
 
 		// Write in chunks for large files
@@ -418,7 +417,7 @@ namespace Aurion
 		return true;
 	}
 
-	bool WindowsFileSystem::Write(const uint64_t& handle, void* buffer, const size_t& size, const size_t& offset)
+	bool WindowsFileSystem::Write(const u64& handle, void* buffer, const size_t& size, const size_t& offset)
 	{
 		// Grab file handle
 		HANDLE system_handle = (HANDLE)handle;
@@ -441,7 +440,7 @@ namespace Aurion
 		
 
 		uint8_t* data = (uint8_t*)buffer;
-		uint64_t remaining = size;
+		u64 remaining = size;
 		DWORD bytes_written = 0;
 
 		// Write in chunks for large files

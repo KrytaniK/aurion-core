@@ -1,11 +1,11 @@
-#include <cstdarg>
-#include <cstdio>
-#include <cassert>
+module Aurion.Log;
 
-#include <iostream>
-
-import Aurion.Log;
 import Aurion.FileSystem;
+import <cstdarg>;
+import <cstdio>;
+import <cassert>;
+import <iostream>;
+
 
 namespace Aurion
 {

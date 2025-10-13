@@ -1,11 +1,8 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Plugin:WindowsLoader;
 
 #ifdef AURION_PLATFORM_WINDOWS
 
+import <macros/AurionExport.h>;
 import <Windows.h>;
 
 import :Loader;
