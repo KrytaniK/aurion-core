@@ -1,10 +1,6 @@
-#include <macros/AurionLog.h>
+module Aurion.Input;
 
-#include <cstdint>
-#include <memory>
-#include <cassert>
-
-import Aurion.Input;
+import Aurion.Types;
 
 namespace Aurion
 {

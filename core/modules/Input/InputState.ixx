@@ -2,16 +2,16 @@ module;
 
 #include <macros/AurionExport.h>
 
-#include <cstdint>
-
 export module Aurion.Input:State;
+
+import Aurion.Types;
 
 export namespace Aurion
 {
 	struct AURION_API InputStateBlock
 	{
-		uint8_t offset = 0; // Offset (in bytes) from the start of the parent state block
-		uint8_t total_size = 0; // Total size (in bytes) of this state block
+		u8 offset = 0; // Offset (in bytes) from the start of the parent state block
+		u8 total_size = 0; // Total size (in bytes) of this state block
 	};
 
 	class AURION_API InputState
@@ -20,17 +20,17 @@ export namespace Aurion
 		inline static const InputStateBlock s_invalid_block{0,0};
 
 	public:
-		InputState(const uint8_t& total_size = UINT8_MAX); // Default to max size of 255 bytes
+		InputState(const u8& total_size = 255u); // Default to max size of 255 bytes
 		~InputState();
 
-		InputStateBlock GetStateBlock(const uint8_t& offset, const uint8_t& size);
+		InputStateBlock GetStateBlock(const u8& offset, const u8& size);
 
-		void Write(const void* data, const uint8_t& offset, const uint8_t& size);
+		void Write(const void* data, const u8& offset, const u8& size);
 
 		bool IsValidBlock(const InputStateBlock& block) const;
 
 	private:
-		uint8_t* m_start_ptr = nullptr; // Pointer to the start of the state memory block
-		uint8_t m_total_size = 0; // Total size (in bytes) of the state memory block
+		u8* m_start_ptr = nullptr; // Pointer to the start of the state memory block
+		u8 m_total_size = 0; // Total size (in bytes) of the state memory block
 	};
 }

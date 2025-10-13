@@ -1,20 +1,19 @@
-#include <macros/AurionLog.h>
+module Aurion.Input;
 
-#include <cstdint>
-#include <memory>
-#include <cassert>
-
-import Aurion.Input;
+import Aurion.Types;
+import <macros/AurionLog.h>;
+import <memory>;
+import <cassert>;
 
 namespace Aurion
 {
-	InputState::InputState(const uint8_t& size)
+	InputState::InputState(const u8& size)
 		: m_total_size(size)
 	{
 		assert(size > 0 && "InputState: Total size must be greater than 0");
 
 		// Allocate the state memory block and zero it out
-		m_start_ptr = static_cast<uint8_t*>(calloc(size, 1));
+		m_start_ptr = static_cast<u8*>(calloc(size, 1));
 	}
 
 	InputState::~InputState()
@@ -23,7 +22,7 @@ namespace Aurion
 		m_start_ptr = nullptr;
 	}
 
-	InputStateBlock InputState::GetStateBlock(const uint8_t& offset, const uint8_t& size)
+	InputStateBlock InputState::GetStateBlock(const u8& offset, const u8& size)
 	{
 		assert(size > 0 && "InputState: Requested state block size must be greater than 0");
 		assert(offset + size <= m_total_size && "InputState: Requested state block exceeds total state size");
@@ -31,7 +30,7 @@ namespace Aurion
 		return InputStateBlock{offset, size};
 	}
 
-	void InputState::Write(const void* data, const uint8_t& offset, const uint8_t& size)
+	void InputState::Write(const void* data, const u8& offset, const u8& size)
 	{
 		assert(m_start_ptr && "InputState: State memory block is not allocated");
 		assert(offset + size <= m_total_size && "InputState: Write operation exceeds total state size");

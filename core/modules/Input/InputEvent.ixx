@@ -2,15 +2,14 @@ module;
 
 #include <macros/AurionExport.h>
 
-#include <cstdint>
-
 export module Aurion.Input:Event;
 
+import Aurion.Types;
 import Aurion.Events;
 
 export namespace Aurion
 {
-	typedef enum AURION_API InputEventTypes : uint16_t
+	typedef enum AURION_API InputEventTypes : u16
 	{
 		AC_INPUT_EVENT_NONE					= 0,
 		AC_INPUT_EVENT_TOUCH				= 1 << 0, // Touch input event (for touchscreens, touchpads, etc.)
@@ -22,7 +21,7 @@ export namespace Aurion
 		AC_INPUT_EVENT_AXIS_4D				= 1 << 6, // 4-dimensional axis movement (for advanced 3D controllers, etc.)
 	} InputEventTypes;
 
-	typedef enum AURION_API InputButtonStates : uint8_t
+	typedef enum AURION_API InputButtonStates : u8
 	{
 		AC_BUTTON_STATE_NONE		= 0,
 		AC_BUTTON_STATE_PRESSED		= 1,
@@ -35,16 +34,16 @@ export namespace Aurion
 		InputEvent() { this->category = AC_EVENT_CATEGORY_INPUT; };
 		InputEvent(const InputEventTypes& type) : InputEvent() { this->type = type; };
 
-		uint64_t context_id = 0; // Context ID (could be a window, application, etc.)
-		uint64_t device_id = 0; // Device ID (which device generated the event)
-		uint64_t control_id = 0; // ID of the control (which control on the device)
+		u64 context_id = 0; // Context ID (could be a window, application, etc.)
+		u64 device_id = 0; // Device ID (which device generated the event)
+		u64 control_id = 0; // ID of the control (which control on the device)
 	};
 
 	struct AURION_API InputTouchEvent : public InputEvent
 	{
 		InputTouchEvent() : InputEvent(AC_INPUT_EVENT_TOUCH) {};
 
-		uint32_t touch_id; // Unique ID for the touch point (for multi-touch support)
+		u32 touch_id; // Unique ID for the touch point (for multi-touch support)
 		double x = 0.0; // X position of the touch point
 		double y = 0.0; // Y position of the touch point
 		float pressure = 0.0f; // Pressure of the touch (if supported)
@@ -61,8 +60,8 @@ export namespace Aurion
 	{
 		InputButtonEvent() : InputEvent(AC_INPUT_EVENT_BUTTON) {};
 
-		uint64_t button = 0; // Button code (could be a keycode, mouse button, gamepad button, etc.)
-		uint64_t scan_code = 0; // Physical scan code (if applicable)
+		u64 button = 0; // Button code (could be a keycode, mouse button, gamepad button, etc.)
+		u64 scan_code = 0; // Physical scan code (if applicable)
 		InputButtonStates state = AC_BUTTON_STATE_NONE; // State of the button (pressed, released, repeated)
 	};
 
