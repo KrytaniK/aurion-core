@@ -6,14 +6,15 @@ module;
 
 export module Aurion.Window:Events;
 
+import Aurion.Types;
+import Aurion.Events;
 import :Window;
 import :Driver;
-import Aurion.Events;
 
 export namespace Aurion
 {
 
-	typedef enum AURION_API WindowEventTypes : uint16_t
+	typedef enum AURION_API WindowEventTypes : u16
 	{
 		AC_WIN_EVENT_CREATE		= 1 << 0,
 		AC_WIN_EVENT_CLOSE		= 1 << 1,
@@ -25,7 +26,7 @@ export namespace Aurion
 	{
 		WindowEvent() { this->category = AC_EVENT_CATEGORY_WINDOW; };
 		WindowEvent(const WindowEventTypes& type) : WindowEvent() { this->type = type; };
-		uint64_t id;
+		u64 id;
 	};
 
 	struct AURION_API WindowCreateEvent : WindowEvent
