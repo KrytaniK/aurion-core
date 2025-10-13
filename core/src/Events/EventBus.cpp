@@ -2,81 +2,118 @@ module Aurion.Events;
 
 import Aurion.Types;
 import <macros/AurionLog.h>;
+import <cassert>;
 
 namespace Aurion
 {
-	void EventBus::Register(const EventCategoryID& id, const EventRegisterCallback& callback, void* context)
+	EventBus::EventBus(const u8& category_count)
+		: m_max_count(category_count), m_registry_count(0)
 	{
-		if (m_registry.count == MAX_EVENT_REGISTERS)
+		m_registry = new EventCategoryRegistry[category_count];
+	}
+
+	EventBus::~EventBus()
+	{
+		delete[] m_registry;
+	}
+
+	void EventBus::Register(const EventHandler& handler)
+	{
+		// Placement New Example:
+		//	new (&window) GLFW_Window(properties);
+
+		// If no handlers exist for any category, add this one.
+		if (m_registry_count == 0)
 		{
-			AURION_ERROR("Failed to register event callback: Out of memory!");
+			EventCategoryRegistry& reg = m_registry[m_registry_count++];
+			reg.category = handler.category;
+			reg.handlers[reg.count++] = handler;
 			return;
 		}
 
-		// Ensure no duplicate callbacks per event category
-		for (u16 i = 0; i < m_registry.count; i++)
+		// Otherwise, we need to search for the correct handler based on category
+		EventCategoryRegistry* temp = nullptr;
+		for (u8 i = 0; i < m_registry_count; i++)
 		{
-			if (m_registry.registers[i].category == id)
+			temp = &m_registry[i];
+			if (temp->category == handler.category)
 			{
-				AURION_ERROR("Failed to register event callback: Callback for category [%d] already exists!", id);
+				// No handlers beyond the max
+				assert(temp->count < MAX_EVENT_HANDLERS);
+
+				temp->handlers[temp->count++] = handler;
 				return;
 			}
 		}
 
-		// Assign register callback, if available
-		m_registry.registers[m_registry.count++] = EventBusRegister{ callback, context, id };
+		assert(m_registry_count < m_max_count);
+
+		// If we've made it this far, the category has no handlers
+		EventCategoryRegistry& reg = m_registry[m_registry_count++];
+		reg.category = handler.category;
+		reg.handlers[reg.count++] = handler;
 	}
 
-	void EventBus::UnRegister(const EventCategoryID& id)
+	void EventBus::UnRegister(const EventCategoryID& category, EventCallback callback)
 	{
-		// Find the callback in the registry
-		for (u16 i = 0; i < m_registry.count; i++)
+		// Search for callback
+		EventCategoryRegistry* temp = nullptr;
+		for (u8 i = 0; i < m_registry_count; i++)
 		{
-			const EventBusRegister& ev_register = m_registry.registers[i];
+			// Don't check if categories don't match
+			if (m_registry[i].category != category)
+				continue;
 
-			if (ev_register.category == id)
+			u8 found_index = u8(-1);
+			temp = &m_registry[i];
+
+			// If the callback is found, remove it
+			for (u8 j = 0; j < temp->count; j++)
 			{
-				// Replace the current register with the last register in the array.
-				// This creates a copy
-				m_registry.registers[i] = m_registry.registers[--m_registry.count];
+				if (temp->handlers[j].callback != callback)
+					continue;
 
-				// Then null the original register
-				m_registry.registers[m_registry.count] = EventBusRegister{ nullptr, nullptr, 0 };
-				return;
+				found_index = j;
+				break;
 			}
-		}
 
-		AURION_ERROR("Failed to unregister event callback: Event category [%d] not found!", id);
-	}
-
-	void EventBus::SwapRegister(const EventCategoryID& id, const EventRegisterCallback& callback, void* context)
-	{
-		// Find the register in the array
-		for (u16 i = 0; i < m_registry.count; i++)
-		{
-			EventBusRegister& ev_register = m_registry.registers[i];
-
-			if (ev_register.category == id)
-			{
-				// Swap the callback if found
-				ev_register.callback = callback;
+			if (found_index == u8(-1))
 				return;
-			}
-		}
 
-		AURION_ERROR("Failed to swap event callback: Event category [%d] not found!", id);
+			// Shrink the array
+			for (u8 j = found_index; j < temp->count - 1; j++)
+				temp->handlers[j] = temp->handlers[j + 1];
+
+			temp->count--;
+			return;
+		}
 	}
 
 	void EventBus::Dispatch(EventBase* event)
 	{
-		// Find the register in the array
-		for (u16 i = 0; i < m_registry.count; i++)
+		EventCategoryID category = event->GetCategory();
+
+		// Find the handler registry for the target context
+		EventCategoryRegistry* temp = nullptr;
+		for (u8 i = 0; i < m_registry_count; i++)
 		{
-			EventBusRegister& ev_register = m_registry.registers[i];
-			
-			if (ev_register.category == event->GetCategory()) {
-				ev_register.callback(event, ev_register.context);
-			}
+			// Category must match
+			if (m_registry[i].category != category)
+				continue;
+
+			temp = &m_registry[i];
+			break;
+		}
+
+		// Don't dispatch if no handlers exist
+		if (!temp) return;
+
+		// Execute all handlers (if any)
+		EventHandler* handler = nullptr;
+		for (u8 i = 0; i < temp->count; i++)
+		{
+			handler = &temp->handlers[i];
+			handler->callback(event, handler->context);
 		}
 	}
 
