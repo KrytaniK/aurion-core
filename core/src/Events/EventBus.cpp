@@ -1,7 +1,6 @@
 #include <macros/AurionLog.h>
 
-#include <cstdint>
-
+import Aurion.Types;
 import Aurion.Events;
 
 namespace Aurion
@@ -15,7 +14,7 @@ namespace Aurion
 		}
 
 		// Ensure no duplicate callbacks per event category
-		for (uint16_t i = 0; i < m_registry.count; i++)
+		for (u16 i = 0; i < m_registry.count; i++)
 		{
 			if (m_registry.registers[i].category == id)
 			{
@@ -31,7 +30,7 @@ namespace Aurion
 	void EventBus::UnRegister(const EventCategoryID& id)
 	{
 		// Find the callback in the registry
-		for (uint16_t i = 0; i < m_registry.count; i++)
+		for (u16 i = 0; i < m_registry.count; i++)
 		{
 			const EventBusRegister& ev_register = m_registry.registers[i];
 
@@ -53,7 +52,7 @@ namespace Aurion
 	void EventBus::SwapRegister(const EventCategoryID& id, const EventRegisterCallback& callback, void* context)
 	{
 		// Find the register in the array
-		for (uint16_t i = 0; i < m_registry.count; i++)
+		for (u16 i = 0; i < m_registry.count; i++)
 		{
 			EventBusRegister& ev_register = m_registry.registers[i];
 
@@ -71,7 +70,7 @@ namespace Aurion
 	void EventBus::Dispatch(EventBase* event)
 	{
 		// Find the register in the array
-		for (uint16_t i = 0; i < m_registry.count; i++)
+		for (u16 i = 0; i < m_registry.count; i++)
 		{
 			EventBusRegister& ev_register = m_registry.registers[i];
 			

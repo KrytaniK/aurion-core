@@ -2,16 +2,15 @@ module;
 
 #include <macros/AurionExport.h>
 
-#include <cstdint>
-
 export module Aurion.Log:Events;
 
+import Aurion.Types;
 import Aurion.Events;
 import :Interface;
 
 export namespace Aurion
 {
-	typedef enum AURION_API LogEventTypes : uint16_t
+	typedef enum AURION_API LogEventTypes : u16
 	{
 		AC_LOG_EVENT_MESSAGE = 1 << 0,
 		AC_LOG_EVENT_FLUSH = 1 << 1,
@@ -25,7 +24,7 @@ export namespace Aurion
 		LogEvent() { this->category = AC_EVENT_CATEGORY_WINDOW; };
 		LogEvent(const LogEventTypes& type) : LogEvent() { this->type = type; };
 
-		uint16_t sink_id = 0; // ID of the logger to use, 0 for none
+		u16 sink_id = 0; // ID of the logger to use, 0 for none
 	};
 
 	struct AURION_API LogMessageEvent : LogEvent

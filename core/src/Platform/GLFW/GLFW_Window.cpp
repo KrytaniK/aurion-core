@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+import Aurion.Types;
 import Aurion.GLFW;
 
 namespace Aurion
@@ -35,8 +36,8 @@ namespace Aurion
 		// Retrieve window position
 		int x, y;
 		glfwGetWindowPos((GLFWwindow*)m_native_handle, &x, &y);
-		m_properties.x = (uint16_t)x;
-		m_properties.y = (uint16_t)y;
+		m_properties.x = (u16)x;
+		m_properties.y = (u16)y;
 	}
 
 	GLFW_Window::~GLFW_Window()
@@ -158,7 +159,7 @@ namespace Aurion
 		}
 	}
 
-	void GLFW_Window::Resize(const uint16_t& width, const uint16_t& height)
+	void GLFW_Window::Resize(const u16& width, const u16& height)
 	{
 		if (!m_native_handle)
 			return;
@@ -166,7 +167,7 @@ namespace Aurion
 		glfwSetWindowSize((GLFWwindow*)m_native_handle, (int)width, (int)height);
 	}
 
-	void GLFW_Window::MoveTo(const uint16_t& xPos, const uint16_t& yPos)
+	void GLFW_Window::MoveTo(const u16& xPos, const u16& yPos)
 	{
 		if (!m_native_handle)
 			return;
@@ -260,8 +261,8 @@ namespace Aurion
 				const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
 
 				// Update properties
-				m_properties.width = static_cast<uint16_t>(vidmode->width);
-				m_properties.height = static_cast<uint16_t>(vidmode->height);
+				m_properties.width = static_cast<u16>(vidmode->width);
+				m_properties.height = static_cast<u16>(vidmode->height);
 
 				// Create a fullscreen exclusive window
 				m_native_handle = glfwCreateWindow(
@@ -288,8 +289,8 @@ namespace Aurion
 				const GLFWvidmode* vidmode = glfwGetVideoMode(m_native_monitor);
 
 				// Update properties
-				m_properties.width = static_cast<uint16_t>(vidmode->width);
-				m_properties.height = static_cast<uint16_t>(vidmode->height);
+				m_properties.width = static_cast<u16>(vidmode->width);
+				m_properties.height = static_cast<u16>(vidmode->height);
 
 				// Set GLFW hints
 				glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);

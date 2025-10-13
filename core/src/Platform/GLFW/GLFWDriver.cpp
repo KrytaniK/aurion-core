@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 import Aurion.Application;
+import Aurion.Types;
 import Aurion.Window;
 import Aurion.GLFW;
 
@@ -138,7 +139,7 @@ namespace Aurion
 				// Generate and return a handle for the created window
 				return WindowHandle{
 					// Index is always index + 1
-					.id = (uint64_t)(i + 1),
+					.id = (u64)(i + 1),
 					.window = &m_windows[i]
 				};
 			}
@@ -192,7 +193,7 @@ namespace Aurion
 		return false;
 	}
 
-	bool GLFWDriver::CloseWindow(const uint64_t& id)
+	bool GLFWDriver::CloseWindow(const u64& id)
 	{
 		if (id > m_max_window_count)
 			return false;
@@ -235,7 +236,7 @@ namespace Aurion
 		return WindowHandle();
 	}
 
-	WindowHandle GLFWDriver::GetWindow(const uint64_t& id)
+	WindowHandle GLFWDriver::GetWindow(const u64& id)
 	{
 		if (id >= m_max_window_count || !m_windows[id].IsOpen())
 			return WindowHandle();

@@ -1,7 +1,6 @@
 #include <macros/AurionLog.h>
 
-#include <cstdint>
-
+import Aurion.Types;
 import Aurion.Window;
 
 namespace Aurion
@@ -59,13 +58,13 @@ namespace Aurion
 		m_properties.mode = mode;
 	}
 
-	void Window::Resize(const uint16_t& width, const uint16_t& height)
+	void Window::Resize(const u16& width, const u16& height)
 	{
 		m_properties.width = width;
 		m_properties.height = height;
 	}
 
-	void Window::MoveTo(const uint16_t& x, const uint16_t& y)
+	void Window::MoveTo(const u16& x, const u16& y)
 	{
 		m_properties.x = x;
 		m_properties.y = y;

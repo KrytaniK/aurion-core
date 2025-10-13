@@ -6,6 +6,7 @@ module;
 
 export module Aurion.GLFW:Window;
 
+import Aurion.Types;
 import Aurion.Window;
 
 export namespace Aurion
@@ -22,8 +23,8 @@ export namespace Aurion
 		virtual void ToggleDecoration() override;
 		virtual void SetTitle(const char* title) override;
 		virtual void SetMode(const WindowMode& mode) override;
-		virtual void Resize(const uint16_t& width, const uint16_t& height) override;
-		virtual void MoveTo(const uint16_t& x, const uint16_t& y) override;
+		virtual void Resize(const u16& width, const u16& height) override;
+		virtual void MoveTo(const u16& x, const u16& y) override;
 		virtual void Focus() override;
 		virtual void ToggleMinimize() override;
 		virtual void ToggleMaximize() override;

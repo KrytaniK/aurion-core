@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+import Aurion.Types;
 import Aurion.Events;
 
 namespace Aurion
@@ -13,12 +14,12 @@ namespace Aurion
 		this->timestamp = time(nullptr);
 	}
 
-	uint16_t EventBase::GetType() const
+	u16 EventBase::GetType() const
 	{
 		return this->type;
 	}
 
-	uint16_t EventBase::GetCategory() const
+	u16 EventBase::GetCategory() const
 	{
 		return this->category;
 	}
