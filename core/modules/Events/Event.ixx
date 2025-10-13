@@ -1,17 +1,17 @@
 module;
 
 #include <macros/AurionExport.h>
-
-#include <cstdint>
 #include <time.h>
 
 export module Aurion.Events:Event;
+
+import Aurion.Types;
 
 export namespace Aurion
 {
 	// Default Event Categories (use is optional)
 	// Custom categories can be defined by the user
-	typedef enum AURION_API EventCategories : uint16_t
+	typedef enum AURION_API EventCategories : u16
 	{
 		AC_EVENT_CATEGORY_NONE = 0,
 		AC_EVENT_CATEGORY_APPLICATION = 1 << 0,
@@ -29,8 +29,8 @@ export namespace Aurion
 	// Base Event Interface
 	struct AURION_API IEvent
 	{
-		uint16_t category = AC_EVENT_CATEGORY_NONE;
-		uint16_t type = 0;
+		u16 category = AC_EVENT_CATEGORY_NONE;
+		u16 type = 0;
 
 		time_t timestamp = 0;
 
@@ -45,8 +45,8 @@ export namespace Aurion
 		EventBase();
 		~EventBase() = default;
 
-		uint16_t GetType() const;
-		uint16_t GetCategory() const;
+		u16 GetType() const;
+		u16 GetCategory() const;
 
 		const time_t& GetTimestamp() const;
 

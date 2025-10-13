@@ -5,11 +5,13 @@ module;
 
 export module Aurion.Memory:Allocator;
 
+import Aurion.Types;
+
 export namespace Aurion
 {
 	struct AURION_API AllocationHeader
 	{
-		uint8_t padding = 0;
+		u8 padding = 0;
 	};
 
 	class AURION_API IMemoryAllocator

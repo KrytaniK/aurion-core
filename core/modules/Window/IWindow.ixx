@@ -2,15 +2,14 @@ module;
 
 #include <macros/AurionExport.h>
 
-#include <cstdint>
-
 export module Aurion.Window:Window;
 
+import Aurion.Types;
 import Aurion.Input;
 
 export namespace Aurion
 {
-	typedef enum AURION_API WindowMode : uint16_t
+	typedef enum AURION_API WindowMode : u16
 	{
 		Windowed					= 1 << 0,
 		FullscreenExclusive			= 1 << 1,
@@ -21,10 +20,10 @@ export namespace Aurion
 	struct AURION_API WindowProperties
 	{
 		const char* title = nullptr;
-		uint16_t width = 1280;
-		uint16_t height = 720;
-		uint16_t x = 0;
-		uint16_t y = 0;
+		u16 width = 1280;
+		u16 height = 720;
+		u16 x = 0;
+		u16 y = 0;
 		WindowMode mode = WindowMode::Windowed;
 		bool resizable = true;
 		bool minimized = false;
@@ -54,8 +53,8 @@ export namespace Aurion
 		virtual void ToggleDecoration() = 0;
 		virtual void SetTitle(const char* title) = 0;
 		virtual void SetMode(const WindowMode& mode) = 0;
-		virtual void Resize(const uint16_t& width, const uint16_t& height) = 0;
-		virtual void MoveTo(const uint16_t& x, const uint16_t& y) = 0;
+		virtual void Resize(const u16& width, const u16& height) = 0;
+		virtual void MoveTo(const u16& x, const u16& y) = 0;
 		virtual void Focus() = 0;
 		virtual void ToggleMinimize() = 0;
 		virtual void ToggleMaximize() = 0;
@@ -81,8 +80,8 @@ export namespace Aurion
 		virtual void ToggleDecoration() override;
 		virtual void SetTitle(const char* title) override;
 		virtual void SetMode(const WindowMode& mode) override;
-		virtual void Resize(const uint16_t& width, const uint16_t& height) override;
-		virtual void MoveTo(const uint16_t& x, const uint16_t& y) override;
+		virtual void Resize(const u16& width, const u16& height) override;
+		virtual void MoveTo(const u16& x, const u16& y) override;
 		virtual void Focus() override;
 		virtual void ToggleMinimize() override;
 		virtual void ToggleMaximize() override;

@@ -2,18 +2,17 @@ module;
 
 #include <macros/AurionExport.h>
 
-#include <cstdint>
-
 export module Aurion.Events:EventBus;
 
+import Aurion.Types;
 import :Event;
 
 export namespace Aurion
 {
-	typedef uint16_t EventCategoryID;
+	typedef u16 EventCategoryID;
 	typedef void(*EventRegisterCallback)(EventBase* event, void* context);
 
-	constexpr uint8_t MAX_EVENT_REGISTERS = 16;
+	constexpr u8 MAX_EVENT_REGISTERS = 16;
 
 	struct EventBusRegister
 	{
@@ -25,7 +24,7 @@ export namespace Aurion
 	struct EventBusRegistry
 	{
 		EventBusRegister registers[MAX_EVENT_REGISTERS];
-		uint16_t count = 0;
+		u16 count = 0;
 	};
 
 	class AURION_API EventBus
