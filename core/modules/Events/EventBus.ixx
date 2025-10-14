@@ -7,38 +7,42 @@ import :Event;
 
 export namespace Aurion
 {
-	typedef u16 EventCategoryID;
-	typedef void(*EventRegisterCallback)(EventBase* event, void* context);
+	// Event Category Alias
+	typedef AURION_API u16 EventCategoryID;
 
-	constexpr u8 MAX_EVENT_REGISTERS = 16;
+	// Core Event Handler Callback
+	typedef AURION_API void(*EventCallback)(EventBase*, void*);
 
-	struct EventBusRegister
+	constexpr u8 MAX_EVENT_HANDLERS = 16;
+
+	struct AURION_API EventHandler
 	{
-		EventRegisterCallback callback = nullptr;
+		EventCategoryID category = AC_EVENT_CATEGORY_NONE; // Guaranteed to be unique
+		EventCallback callback = nullptr;
 		void* context = nullptr;
-		EventCategoryID category = 0;
 	};
 
-	struct EventBusRegistry
+	struct AURION_API EventCategoryRegistry
 	{
-		EventBusRegister registers[MAX_EVENT_REGISTERS];
-		u16 count = 0;
+		EventCategoryID category = AC_EVENT_CATEGORY_NONE;
+		EventHandler handlers[MAX_EVENT_HANDLERS];
+		u8 count = 0;
 	};
 
 	class AURION_API EventBus
 	{
 	public:
-		EventBus() = default;
-		~EventBus() = default;
+		EventBus(const u8& category_count);
+		~EventBus();
 
-		void Register(const EventCategoryID& id, const EventRegisterCallback& callback, void* context = nullptr);
-		void UnRegister(const EventCategoryID& id);
-
-		void SwapRegister(const EventCategoryID& id, const EventRegisterCallback& callback, void* context);
+		void Register(const EventHandler& handler);
+		void UnRegister(const EventCategoryID& category, EventCallback callback);
 
 		void Dispatch(EventBase* event);
-		 
+
 	private:
-		EventBusRegistry m_registry;
+		EventCategoryRegistry* m_registry;
+		u8 m_registry_count;
+		u8 m_max_count;
 	};
 }
