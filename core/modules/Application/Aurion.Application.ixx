@@ -12,38 +12,32 @@ export namespace Aurion
 	public:
 		virtual ~IApplication() = default;
 
-		virtual void StartAndRun() = 0;
+		virtual void StartAndRun(int argc = 0, char* argv[] = nullptr) = 0;
 
 	private:
-		virtual void Initialize() = 0;
+		virtual void Initialize(int argc = 0, char* argv[] = nullptr) = 0;
 		virtual void Run() = 0;
 		virtual void Shutdown() = 0;
 	};
 
+	// Base application class: Takes over lifecycle management,
+	// but does not define implementation.
 	class AURION_API Application : public IApplication
 	{
 	public:
-		inline static Application* s_instance = nullptr;
+		Application() = default;
+		virtual ~Application() override = default;
 
-	public:
-		static void DispatchEvent(EventBase* event);
-		static EventBus* Events();
-
-	public:
-		Application();
-		virtual ~Application() override;
-
-		virtual void StartAndRun() override final;
+		virtual void StartAndRun(int argc = 0, char* argv[] = nullptr) override final;
 
 	private:
-		virtual void Initialize() override;
-		virtual void Run() override;
-		virtual void Shutdown() override;
+		virtual void Initialize(int argc = 0, char* argv[] = nullptr) override = 0;
+		virtual void Run() override = 0;
+		virtual void Shutdown() override = 0;
 
-		virtual void OnEvent(EventBase* event);
+		virtual void OnEvent(EventBase* event) = 0;
 
 	protected:
-		EventBus m_event_bus;
 		bool m_shouldClose = true;
 	};
 }

@@ -13,9 +13,6 @@ export namespace Aurion
 	class AURION_API GLFWDriver : public IWindowDriver
 	{
 	public:
-		static void HandleEvent(EventBase* event, void* context);
-
-	public:
 		GLFWDriver(const int& client_api = 0, const size_t& max_window_count = 1);
 		virtual ~GLFWDriver();
 

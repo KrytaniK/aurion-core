@@ -28,16 +28,6 @@ namespace Aurion
 
 		// Allocate enough space for the max # of windows
 		m_windows = new GLFW_Window[m_max_window_count];
-
-		// Attach window event handler if an application instance exists
-		if (Application::s_instance)
-		{
-			Application::Events()->Register({
-				.category = AC_EVENT_CATEGORY_WINDOW,
-				.callback = &GLFWDriver::HandleEvent,
-				.context = this
-			});
-		}
 	}
 
 	GLFWDriver::~GLFWDriver()
@@ -48,72 +38,6 @@ namespace Aurion
 		delete[] m_windows;
 	}
 
-	// Static Event Handler
-	void GLFWDriver::HandleEvent(EventBase* event, void* context)
-	{
-		assert(event != nullptr && "[GLFWDriver::HandleEvent] Event pointer must not be null!");
-		assert(context != nullptr && "[GLFWDriver::HandleEvent] Context pointer must not be null!");
-
-		// Don't process handled events
-		if (event->IsHandled())
-			return;
-
-		// The context in this case should ALWAYS be a GLFWDriver instance
-		GLFWDriver* _this = static_cast<GLFWDriver*>(context);
-
-		// Handle as a window event, based on the type of event
-		switch (event->GetType())
-		{
-			case AC_WIN_EVENT_CREATE:
-			{
-				WindowCreateEvent& create_event = *static_cast<WindowCreateEvent*>(event);
-
-				// Open/Create a window with the GLFW driver context
-				_this->OpenWindow(create_event.properties);
-
-				// Mark event as handled
-				event->Handle();
-				break;
-			}
-			case AC_WIN_EVENT_CLOSE:
-			{
-				WindowCloseEvent& close_event = *static_cast<WindowCloseEvent*>(event);
-
-				// Close a window with the GLFW driver context
-				_this->CloseWindow(close_event.id);
-
-				// Mark event as handled
-				event->Handle();
-				break;
-			}
-			case AC_WIN_EVENT_GET:
-			{
-				WindowGetEvent& get_event = *static_cast<WindowGetEvent*>(event);
-
-				// Search for a window with the GLFW driver context,
-				//	either by title or id as a fallback
-				if (get_event.title)
-				{
-					get_event.out_handle = _this->GetWindow(get_event.title);
-				}
-				else
-				{
-					get_event.out_handle = _this->GetWindow(get_event.id);
-				}
-
-				// Mark event as handled
-				event->Handle();
-				break;
-			}
-			default:
-			{
-				AURION_WARN("[GLFWDriver::HandleEvent] Unhandled Event Type");
-				return;
-			}
-		}
-	}
-
-	// Instance methods
 	WindowHandle GLFWDriver::OpenWindow(const WindowProperties& properties)
 	{
 		if (!m_windows)
