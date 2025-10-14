@@ -32,11 +32,11 @@ namespace Aurion
 		// Attach window event handler if an application instance exists
 		if (Application::s_instance)
 		{
-			Application::Events()->Register(
-				EventCategories::AC_EVENT_CATEGORY_WINDOW,
-				&GLFWDriver::HandleEvent,
-				this
-			);
+			Application::Events()->Register({
+				.category = AC_EVENT_CATEGORY_WINDOW,
+				.callback = &GLFWDriver::HandleEvent,
+				.context = this
+			});
 		}
 	}
 

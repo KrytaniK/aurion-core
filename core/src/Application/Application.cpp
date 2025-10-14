@@ -30,6 +30,7 @@ namespace Aurion
 	/// -----------------------------------------------------------------
 
 	Application::Application()
+		: m_event_bus(7) // Magic number: Consider a constexpr
 	{
 		// Ensure only one instance of Application exists at any time.
 		assert(s_instance == nullptr && "Application instance already exists!");
