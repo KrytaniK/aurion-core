@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Memory:PoolAllocator;
+
+import <macros/AurionExport.h>;
 
 import :Allocator;
 

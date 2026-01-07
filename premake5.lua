@@ -15,7 +15,7 @@ function GenerateCoreSolution()
     project "AurionCore"
         kind "SharedLib"
         language "C++"
-        cppdialect "C++20"
+        cppdialect "C++latest"
         staticruntime "Off"
 
         -- Build Directories
@@ -77,7 +77,7 @@ function GenerateSandboxProject()
     project "Sandbox"
         kind "ConsoleApp"
         language "C++"
-        cppdialect "C++20"
+        cppdialect "C++latest"
         staticruntime "Off"
 
         -- C++ Module Support

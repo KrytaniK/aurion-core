@@ -1,8 +1,6 @@
-module;
-
-#include <macros/AurionExport.h>
-
 export module Aurion.Log:ConsoleLogger;
+
+import <macros/AurionExport.h>;
 
 import :Interface;
 

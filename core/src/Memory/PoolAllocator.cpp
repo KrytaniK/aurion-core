@@ -1,10 +1,9 @@
-#include <macros/AurionLog.h>
+module Aurion.Memory;
 
-#include <cstdlib>
-#include <cstdint>
-#include <iostream>
-
-import Aurion.Memory;
+import <macros/AurionLog.h>;
+import <cstdlib>;
+import <cstdint>;
+import <iostream>;
 
 namespace Aurion
 {

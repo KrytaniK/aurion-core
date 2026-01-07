@@ -45,11 +45,14 @@ Aurion provides a few interfaces for working with window objects:
 In addition to these interfaces, a cross-platform implementation using GLFW is provided.
 > Note: To minimize potential versioning conflicts, glfw is linked statically through glfw3dll.lib and glfw3.dll, and is included with the project.
 
-### Plugin Architecture
-Some applications rely on complex plugin systems for common functionality. The major benefit to using plugins is the flexibility they offer. Aurion offers a simple solution:
-- **Plugin Interface**: A bare-bones representation of what a plugin should be, with two free functions defining how plugins are created and destroyed.
-- **Plugin Context**: While more of a tagging structure, this interface allows users to derive custom structures to pass to desired plugins.
-- **Plugin Loader**: An interface designed for flexible plugin loading/unloading.
+:heavy_check_mark: **Plugin-Based Architecture** – Extendable and overwritable functionality through configurable plugins.  
+:heavy_check_mark: **Custom Entry Point** – Customizable application entry points.   
+:heavy_check_mark: **Debug Tools** – Logging (console, file).   
+:heavy_check_mark: **Memory Utility** – Basic utilities for better memory management.   
+:heavy_check_mark: **Window Management** – Cross-Platform window management through GLFW.    
+:heavy_check_mark: **Input Management** – Basic I/O support for common devices.   
+:heavy_check_mark: **Events** – Various interfaces for handling application events (publisher/subscriber, listeners, event bus, etc.).   
+:heavy_check_mark: **File System** – A streamlined way to handle files.   
 
 Because loading plugins dynamically at runtime is platform-specific, Aurion offers implementations for the following platforms:
 - Windows via `WindowsPluginLoader`
