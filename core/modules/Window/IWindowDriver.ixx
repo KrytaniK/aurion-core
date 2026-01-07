@@ -1,18 +1,16 @@
-module;
-
-#include <macros/AurionExport.h>
-
-#include <cstdint>
-
 export module Aurion.Window:Driver;
 
+import <macros/AurionExport.h>;
+
+import Aurion.Types;
 import :Window;
 
 export namespace Aurion
 {
-	struct AURION_API WindowDriverConfig
+	struct AURION_API WindowHandle
 	{
-		size_t max_window_count;
+		u64 id = 0;
+		Window* window = nullptr;
 	};
 
 	class AURION_API IWindowDriver
@@ -20,16 +18,12 @@ export namespace Aurion
 	public:
 		virtual ~IWindowDriver() = default;
 
-		virtual void Initialize(const WindowDriverConfig& config) = 0;
+		virtual WindowHandle OpenWindow(const WindowProperties& properties) = 0;
+		virtual bool CloseWindow(const WindowHandle& handle) = 0;
+		virtual bool CloseWindow(const char* title) = 0;
+		virtual bool CloseWindow(const u64& id) = 0;
 
 		virtual WindowHandle GetWindow(const char* title) = 0;
-
-		virtual WindowHandle GetWindow(const uint64_t& id) = 0;
-
-		virtual WindowHandle InitWindow(const WindowConfig& config) = 0;
-
-		virtual bool RemoveWindow(const char* title) = 0;
-		virtual bool RemoveWindow(const uint64_t& id) = 0;
-		virtual bool RemoveWindow(IWindow* window) = 0;
+		virtual WindowHandle GetWindow(const u64& id) = 0;
 	};
 }

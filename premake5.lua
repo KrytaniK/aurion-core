@@ -7,11 +7,6 @@ workspace "AurionCore"
 
     outputdir = "%{cfg.buildcfg}_%{cfg.system}_%{cfg.architecture}"
 
-    -- Module Interface Units
-    filter { "files:**.ixx" }
-        compileas "Module"
-    filter {} -- Reset filter to prevent overlap
-
 -- Function to generate core solution project
 function GenerateCoreSolution()
     print("Generating Solution: AurionCore")
@@ -20,7 +15,7 @@ function GenerateCoreSolution()
     project "AurionCore"
         kind "SharedLib"
         language "C++"
-        cppdialect "C++20"
+        cppdialect "C++latest"
         staticruntime "Off"
 
         -- Build Directories
@@ -48,9 +43,7 @@ function GenerateCoreSolution()
 
         postbuildcommands {
             "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/Sandbox",
-            "{MKDIR} %{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}/modules",
-            "{COPYFILE} %{wks.location}/build/bin-int/" .. outputdir .. "/%{prj.name}/*.ifc %{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}/modules/",
-            "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/%{prj.name}/%{prj.name}.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/",
+            "{COPYFILE} %{wks.location}/build/bin/" .. outputdir .. "/AurionCore/AurionCore.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/",
             "{COPYFILE} %{wks.location}/third_party/GLFW/lib/glfw3.dll %{wks.location}/build/bin/" .. outputdir .. "/Sandbox/"
         }
 
@@ -84,7 +77,7 @@ function GenerateSandboxProject()
     project "Sandbox"
         kind "ConsoleApp"
         language "C++"
-        cppdialect "C++20"
+        cppdialect "C++latest"
         staticruntime "Off"
 
         -- C++ Module Support
@@ -98,14 +91,12 @@ function GenerateSandboxProject()
 
         files { "Sandbox/**.ixx", "Sandbox/**.h", "Sandbox/**.cpp" }
 
-        includedirs { "%{wks.location}/core", "third_party/GLFW/include" }
-
-        libdirs { "third_party/GLFW/lib" }
+        includedirs { "%{wks.location}/core" }
 
         print("[Premake5] Linking project dependencies...")
 
         -- Link Core Framework
-        links { "AurionCore", "glfw3dll.lib" }
+        links { "AurionCore" }
 
         print("[Premake5] Adding filters...")
 
