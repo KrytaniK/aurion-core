@@ -1,3 +1,5 @@
+module;
+
 #include <cstdint>
 
 export module Aurion.Types:Primitives;
