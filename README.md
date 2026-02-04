@@ -7,138 +7,295 @@
 <h1>Aurion Core</h1>
 
 <p>
-  Aurion Core is designed to faciliate the rapid development of new applications by providing lightweight library of interfaces with minimal reliance on the standard template library.
+  A lightweight C++20 application framework designed to facilitate rapid development with minimal STL reliance, featuring custom memory management, modular architecture, and cross-platform window handling.
 </p>
 
 </div>
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Building from Source](#building-from-source)
+  - [Build Configurations](#build-configurations)
+- [Core Modules](#core-modules)
+  - [Application](#application)
+  - [Events](#events)
+  - [Input](#input)
+  - [Logging](#logging)
+  - [Memory](#memory)
+  - [Types](#types)
+  - [Window](#window)
+- [Dependencies](#dependencies)
+- [Planned Features](#planned-features)
+- [License](#license)
+
+## Overview
+
+Aurion Core is a modular C++ framework built as a shared library (DLL) that provides essential interfaces for application development. The framework emphasizes:
+
+- **Minimal STL Dependencies** - Custom implementations for greater control and performance
+- **C++20 Modules** - Modern code organization using `.ixx` module files
+- **Plugin-Based Architecture** - Extensible and configurable functionality
+- **Custom Memory Management** - Three allocator strategies for different use cases
+
+> **Note:** Currently, platform-specific implementations are only available for Windows. Linux and Mac support is planned.
+
+## Features
+
+| Feature                | Description                                                   |
+|------------------------|---------------------------------------------------------------|
+| **Custom Entry Point** | Customizable application lifecycle management                 |
+| **Event System**       | Publisher/subscriber pattern with category-based routing      |
+| **Input Management**   | Logical device abstractions                                   |
+| **Window Management**  | Cross-platform window handling via GLFW                       |
+| **Memory Allocators**  | Linear, Stack, and Pool allocators for optimized memory usage |
+| **Logging**            | Color-coded console output with multiple verbosity levels     |
+| **Math Library**       | Vectors, matrices, and quaternions with f32/f64 precision     |
+
+## Project Structure
+
+```
+aurion-core/
+├── core/
+│   ├── macros/                    # Export and logging macros
+│   │   ├── AurionExport.h
+│   │   └── AurionLog.h
+│   ├── modules/                   # C++20 module definitions (.ixx)
+│   │   ├── Application/           # Application lifecycle
+│   │   ├── Events/                # Event system (EventBus, listeners)
+│   │   ├── Input/                 # Input devices and controls
+│   │   ├── Logging/               # Console and file loggers
+│   │   ├── Memory/                # Custom allocators
+│   │   │   └── Allocators/        # Linear, Stack, Pool
+│   │   ├── Platform/              # Platform-specific code
+│   │   │   └── GLFW/              # GLFW implementation
+│   │   ├── Types/                 # Primitives and math types
+│   │   └── Window/                # Window interfaces
+│   └── src/                       # Implementation files (.cpp)
+├── third_party/
+│   ├── GLFW/                      # GLFW 3.4 (pre-compiled)
+│   └── premake/                   # Premake5 executable
+├── scripts/
+│   └── Windows/
+│       └── generate_projects.bat  # VS solution generator
+├── config/
+│   └── circleci/config.yml        # CI/CD configuration
+├── premake5.lua                   # Build configuration
+└── LICENSE                        # MIT License
+```
 
 ## Getting Started
 
-Aurion Core is primarily meant to be used in conjunction with your application. To this extent, pre-built binaries have been included with each [GitHub Release](https://github.com/krytanik/aurion-core/releases/latest)
-> Note: Currently, platform-specific implementations have only been created for Windows. Linux and Mac implementations are planned!
+Aurion Core is designed to be integrated with your application. Pre-built binaries are available with each [GitHub Release](https://github.com/krytanik/aurion-core/releases/latest).
 
-### Building From Source
+### Prerequisites
 
-#### Prerequisites
-- A valid installation of [**Visual Studio Community 2022**](https://visualstudio.microsoft.com/vs/community/) or later
-- A valid installation of [**Premake 5**](https://premake.github.io/) or later
+- [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/) or later
+- [Premake 5](https://premake.github.io/) (included in `third_party/premake/`)
+- C++20 compatible compiler with module support
 
-#### Installation
-To begin, clone the repositiory into your destination folder via
+### Building from Source
 
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/KrytaniK/aurion-core.git
+   cd aurion-core
+   ```
+
+2. Generate Visual Studio solution:
+   ```sh
+   scripts/Windows/generate_projects.bat
+   ```
+   Or manually run Premake with your desired version of Visual Studio:
+   ```sh
+   premake5 vs202X
+   ```
+
+3. Open `AurionCore.sln` in Visual Studio and build.
+
+### Build Configurations
+
+| Configuration | Description                          | Defines             |
+|---------------|--------------------------------------|---------------------|
+| **Debug**     | Development build with debug symbols | `AURION_CORE_DEBUG` |
+| **Release**   | Optimized build with debug info      | -                   |
+| **Dist**      | Distribution build, fully optimized  | -                   |
+
+**Output Directories:**
+- Binaries: `build/bin/{Config}_Windows_x64/{Project}/`
+- Intermediate: `build/bin-int/{Config}_Windows_x64/{Project}/`
+
+## Core Modules
+
+### Application
+
+An abstract class derived from `IApplication` that manages the application lifecycle through `Application::StartAndRun()`. For custom lifecycle management, you may derive from `IApplication`.
+```cpp
+import Aurion.Application;
+
+class MyApp : public Aurion::Application {
+public:
+    void Initialize(int argc, char* argv[]) override { /* Setup */ }
+    void Run() override { /* Main loop */ }
+    void Shutdown() override { /* Cleanup */ }
+};
 ```
-git clone https://github.com/KrytaniK/aurion-core.git
-```
 
-From here, simply navigate to the `scripts` folder and run one of the following setup files:
-- `Windows/generate_projects.bat` will generate the Visual Studio Solution files.
+**Components:**
+- `IApplication` - Lifecycle interface
+- `Application` - Base class with `StartAndRun()`, `Initialize()`, `Run()`, `Shutdown()`
 
-## Key Features
+### Events
 
-### Window Management
-Aurion provides a few interfaces for working with window objects:
-- **Window Interface**: For deriving custom window implementations
-- **Window Driver Interface**: For managing a collection of windows
-- **Window Context**: An extension for use with the plugin system
+Publisher/subscriber event system with category-based routing.
 
-In addition to these interfaces, a cross-platform implementation using GLFW is provided.
-> Note: To minimize potential versioning conflicts, glfw is linked statically through glfw3dll.lib and glfw3.dll, and is included with the project.
+**Components:**
+- `EventBase` - Base event with timestamp and propagation control
+- `EventBus` - Central event dispatcher (max 16 handlers per category)
+- `IEventDispatcher` / `IEventListener` - Interfaces for custom implementations
+- `EventCategoryRegistry` - Category-based handler management
 
-:heavy_check_mark: **Plugin-Based Architecture** – Extendable and overwritable functionality through configurable plugins.  
-:heavy_check_mark: **Custom Entry Point** – Customizable application entry points.   
-:heavy_check_mark: **Debug Tools** – Logging (console, file).   
-:heavy_check_mark: **Memory Utility** – Basic utilities for better memory management.   
-:heavy_check_mark: **Window Management** – Cross-Platform window management through GLFW.    
-:heavy_check_mark: **Input Management** – Basic I/O support for common devices.   
-:heavy_check_mark: **Events** – Various interfaces for handling application events (publisher/subscriber, listeners, event bus, etc.).   
-:heavy_check_mark: **File System** – A streamlined way to handle files.   
-
-Because loading plugins dynamically at runtime is platform-specific, Aurion offers implementations for the following platforms:
-- Windows via `WindowsPluginLoader`
+**Features:**
+- Event propagation control
+- Category-based routing
+- Optional timestamp tracking
 
 ### Input
-One of the most complex systems for any application is input handling, especially if you intend to write such a system from scratch. Aurion offers a unique approach to handling this issue:
-- **Input Context**: An interface designed to facilitate the encapsulated creation of 'logical input devices' and their respective memory layouts.
-- **Input Device**: A logical unit to represent a physical device (such as a keyboard or mouse).
-- **Input Device Layout**: A structure representing the full memory layout of a device, including information about each device control.
-- **Input Control**: The logical representation for unique input types. These can be things such as buttons, vector positions, rotations, and more.
 
-Because the interface was designed to be abstract, logical devices aren't required to map to hardware. You can simulate input completely from within the application.
+Abstraction-based input system supporting logical devices.
 
-### File System
-Aurion provides two core systems for working with files:
+**Components:**
+- `InputDevice` - Logical input device representation
+- `InputControl` - Individual controls (buttons, axes)
+- `InputState` - Device state memory management
+- `InputDeviceSpec` - Device metadata
+- `InputDeviceCapabilities` - Button/axis/POV counts
 
-#### File System (CORE):
-- **File System Interface**: An interface for deriving platform-specific file system implementations.
-- **File Handle**: A basic, platform-agnostic class designed to encapsulate file reading and writing operations.
-- **File Data**: An abstract representation of a file's contents. Used internally by the File Handle.
-- **Directory Handle**: Similar to the file handle, the directory handle is a platform-agnostic class designed for basic directory operations.
+**Event Types:**
+- `InputButtonEvent` - Button press/release
+- `InputAxisEvent` - Single axis input
+- `InputAxis2DEvent` / `InputAxis3DEvent` / `InputAxis4DEvent` - Multi-axis input
+- `InputTouchEvent` - Touch input with pressure support
 
-#### Virtual File System:
-> Note: Example implementations are a WIP.
+> Input devices are not strictly hardware-mapped, allowing for simulated input within the application.
 
-The virtual file system is simply an interface designed to allow implementations to 'mount' system directories so derived applications may use relative 'virtual' pathing instead of full system paths.
-One such example would be to map the directory:
-```
-"C:\Users\You\Documents\MyFolder\NestedFolder\DeeplyNestedFolder\AnotherDeeplyNestedFolder"
-```
-to something like:
-```
-"MyDirectory"
-```
-Then, for comparison, file access from within the application could look something like:
-```
-myFileLoader.LoadFile("MyDirectory/MyFile.txt");
-```
-instead of an absolute or relative system path:
-```
-myFileLoader.LoadFile("C:/Users/You/Documents/MyFolder/NestedFolder/DeeplyNestedFolder/AnotherDeeplyNestedFolder/MyFile.txt");
+### Logging
+
+Color-coded console logging with multiple verbosity levels.
+
+**Verbosity Levels:**
+
+| Level    | Macro                  | Color      |
+|----------|------------------------|------------|
+| TRACE    | `AURION_TRACE(...)`    | Gray       |
+| INFO     | `AURION_INFO(...)`     | White      |
+| WARN     | `AURION_WARN(...)`     | Yellow     |
+| ERROR    | `AURION_ERROR(...)`    | Red        |
+| CRITICAL | `AURION_CRITICAL(...)` | Bright Red |
+
+**Components:**
+- `ILogger` - Logger interface
+- `ConsoleLogger` - Singleton console logger with ANSI color support
+- `FileLogger` - File output (in progress)
+
+### Memory
+
+Custom memory allocators for optimized allocation strategies.
+
+| Allocator         | Use Case                                | Deallocation |
+|-------------------|-----------------------------------------|--------------|
+| `LinearAllocator` | Temporary allocations, frame data       | Reset only   |
+| `StackAllocator`  | LIFO allocations, scoped resources      | LIFO order   |
+| `PoolAllocator`   | Fixed-size objects, frequent alloc/free | Free list    |
+
+**Features:**
+- 16-byte default alignment
+- Move semantics (copy disabled)
+- Reset capability
+- Allocation headers for tracking
+
+### Types
+
+Custom primitive types and math utilities.
+
+**Primitive Types:**
+```cpp
+// Unsigned integers
+u8, u16, u32, u64
+
+// Signed integers
+i8, i16, i32, i64
+
+// Floating point
+f32 (float), f64 (double)
 ```
 
-### Event System
-A basic interface has been defined for deriving custom listener/dispatcher implementations through `IEventDispatcher` and `IEventListener`.
+**Math Types:**
+
+| Category    | f32 Precision                   | f64 Precision                   | Aliases                  |
+|-------------|---------------------------------|---------------------------------|--------------------------|
+| Vectors     | `Vec2f32`, `Vec3f32`, `Vec4f32` | `Vec2f64`, `Vec3f64`, `Vec4f64` | `fVec2/3/4`, `dVec2/3/4` |
+| Matrices    | `Mat2f32`, `Mat3f32`, `Mat4f32` | `Mat2f64`, `Mat3f64`, `Mat4f64` | `fMat2/3/4`, `dMat2/3/4` |
+| Quaternions | `Quatf32`                       | `Quatf64`                       | `fQuat`, `dQuat`         |
+
+**Features:**
+- Operator overloading (arithmetic, comparison, compound assignment)
+- Member access via `.x/.y/.z/.w` or `.data[]`
+- Matrix access via `.m11/.m12/...` pattern
+
+### Window
+
+Cross-platform window management via GLFW.
+
+**Components:**
+- `IWindow` - Window interface
+- `Window` - Base window class
+- `IWindowDriver` - Multi-window management
+- `WindowProperties` - Configuration struct
+- `WindowHandle` - Window reference
+
+**Window Modes:**
+- `Windowed` - Standard windowed mode
+- `FullscreenExclusive` - Exclusive fullscreen
+- `FullscreenBorderless` - Borderless fullscreen
+
+**Events:**
+- `WindowCreateEvent`, `WindowCloseEvent`, `WindowGetEvent`
+
+**Platform Implementations:**
+- `GLFWDriver` - GLFW-based window driver
+- `GLFW_Window` - GLFW window implementation
+
+> GLFW is linked statically through `glfw3dll.lib` and `glfw3.dll` to minimize versioning conflicts.
+
+## Dependencies
+
+| Dependency                           | Version | Purpose                        |
+|--------------------------------------|---------|--------------------------------|
+| [GLFW](http://www.glfw.org)          | 3.4     | Window and input management    |
+| [Premake](https://premake.github.io) | 5.x     | Build system generation        |
+| Visual Studio                        | 2022+   | C++ compiler (Windows)         |
+| C++ Standard                         | C++20   | Language standard with modules |
 
 ## Planned Features
-- **Linux and Mac Support** for platform-specific features that require it.
-- **Event System Extensions** to allow for event priority, queueing, and profiling.
-- **Memory Profiling Utils** to track unique allocations, copies, etc. for custom memory structures.
-- **Multithreading Support** through custom thread pools, task scheduling, and synchronization utils.
-- **Cross-platform Data Serialization** to handle data reflection and versioning.
-- **Basic Networking Utilities** for various server-client and client-client interactions.
-- **Time Tracking** for a simplified and structured way to track and use time in applications.
 
+- **Linux and Mac Support** - Platform-specific implementations
+- **CMake Support** - CMake build scripts for compatibility
+- **Event System Extensions** - Priority, queueing, and profiling
+- **Memory Profiling** - Allocation tracking and analysis
+- **Multithreading** - Thread pools, task scheduling, synchronization
+- **Data Serialization** - Cross-platform reflection and versioning
+- **Networking** - Server-client and peer-to-peer utilities
+- **Time Tracking** - Structured time management utilities
 
-<!---
-## **🚀 Getting Started**
+## License
 
-Pre-compiled binaries for each platform can be found [Here]()
---->
+Distributed under the MIT License. See `LICENSE` for more information.
 
-<!---
-### **🔹 Prerequisites**
-
-- **OS Support:** Windows, Mac , Linux
-- **Dependencies:** List required dependencies.
-- **Compiler:** Minimum compiler versions & requirements.
---->
-
-<!---
-### **🔹 Installation**
-
-```sh
-# Clone the repository
-git clone https://github.com/your-org/repo-name.git
-cd repo-name
-
-# Build with Premake
-premake5 vs2022  # (or gmake2 for Linux/macOS)
-
-# Compile
-make               # Linux/macOS
-MSBuild solution.sln  # Windows
-
-# Run the application (if applicable)
-./bin/Debug/project-name
 ```
---->
+MIT License (c) 2025 KrytaniK
+```
