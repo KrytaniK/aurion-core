@@ -7,7 +7,7 @@
 <h1>Aurion Core</h1>
 
 <p>
-  A lightweight C++20 application framework designed to facilitate rapid development with minimal STL reliance, featuring custom memory management, modular architecture, and cross-platform window handling.
+  A lightweight C++23 application framework designed to facilitate rapid development with minimal STL reliance, featuring custom memory management, modular architecture, and cross-platform window handling.
 </p>
 
 </div>
@@ -21,6 +21,7 @@
   - [Prerequisites](#prerequisites)
   - [Building from Source](#building-from-source)
   - [Build Configurations](#build-configurations)
+  - [Packaging](#packaging)
 - [Core Modules](#core-modules)
   - [Application](#application)
   - [Events](#events)
@@ -38,7 +39,7 @@
 Aurion Core is a modular C++ framework built as a shared library (DLL) that provides essential interfaces for application development. The framework emphasizes:
 
 - **Minimal STL Dependencies** - Custom implementations for greater control and performance
-- **C++20 Modules** - Modern code organization using `.ixx` module files
+- **C++23 Modules** - Modern code organization using `.ixx` module files
 - **Plugin-Based Architecture** - Extensible and configurable functionality
 - **Custom Memory Management** - Three allocator strategies for different use cases
 
@@ -60,7 +61,9 @@ Aurion Core is a modular C++ framework built as a shared library (DLL) that prov
 
 ```
 aurion-core/
-├── core/
+├── CMakeLists.txt                 # Root CMake configuration
+├── AurionCore/
+│   ├── CMakeLists.txt             # Library target and dependency configuration
 │   ├── macros/                    # Export and logging macros
 │   │   ├── AurionExport.h
 │   │   └── AurionLog.h
@@ -76,15 +79,7 @@ aurion-core/
 │   │   ├── Types/                 # Primitives and math types
 │   │   └── Window/                # Window interfaces
 │   └── src/                       # Implementation files (.cpp)
-├── third_party/
-│   ├── GLFW/                      # GLFW 3.4 (pre-compiled)
-│   └── premake/                   # Premake5 executable
-├── scripts/
-│   └── Windows/
-│       └── generate_projects.bat  # VS solution generator
-├── config/
-│   └── circleci/config.yml        # CI/CD configuration
-├── premake5.lua                   # Build configuration
+├── premake5.lua                   # Legacy build file (deprecated)
 └── LICENSE                        # MIT License
 ```
 
@@ -94,9 +89,10 @@ Aurion Core is designed to be integrated with your application. Pre-built binari
 
 ### Prerequisites
 
-- [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/) or later
-- [Premake 5](https://premake.github.io/) (included in `third_party/premake/`)
-- C++20 compatible compiler with module support
+- [CMake](https://cmake.org/) 4.2 or later
+- [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/) or later (Windows)
+- C++23 compatible compiler with module support
+- Git (required for GLFW to be fetched automatically)
 
 ### Building from Source
 
@@ -106,28 +102,51 @@ Aurion Core is designed to be integrated with your application. Pre-built binari
    cd aurion-core
    ```
 
-2. Generate Visual Studio solution:
+2. Configure the build:
    ```sh
-   scripts/Windows/generate_projects.bat
-   ```
-   Or manually run Premake with your desired version of Visual Studio:
-   ```sh
-   premake5 vs202X
+   cmake -B build
    ```
 
-3. Open `AurionCore.sln` in Visual Studio and build.
+3. Build the library:
+   ```sh
+   cmake --build build
+   ```
+
+4. Optionally install to a local prefix:
+   ```sh
+   cmake --install build --prefix ./install
+   ```
+
+   This will place the DLL under `install/bin/`, static import library under `install/lib/`, module files under `install/modules/`, and macro headers under `install/include/`.
+
+> GLFW 3.4 is fetched and built automatically via CMake's `FetchContent` — no manual download required.
 
 ### Build Configurations
 
-| Configuration | Description                          | Defines             |
-|---------------|--------------------------------------|---------------------|
-| **Debug**     | Development build with debug symbols | `AURION_CORE_DEBUG` |
-| **Release**   | Optimized build with debug info      | -                   |
-| **Dist**      | Distribution build, fully optimized  | -                   |
+Pass `-DCMAKE_BUILD_TYPE=<config>` during configuration to select a build type:
 
-**Output Directories:**
-- Binaries: `build/bin/{Config}_Windows_x64/{Project}/`
-- Intermediate: `build/bin-int/{Config}_Windows_x64/{Project}/`
+| Configuration     | Description                              |
+|-------------------|------------------------------------------|
+| **Debug**         | Development build with debug symbols     |
+| **Release**       | Fully optimized build                    |
+| **RelWithDebInfo** | Optimized build with debug info         |
+| **MinSizeRel**    | Size-optimized build                     |
+
+Example:
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+### Packaging
+
+Aurion Core uses CPack to generate distributable archives. After building, run:
+
+```sh
+cpack --config build/CPackConfig.cmake
+```
+
+This produces ZIP and TGZ archives containing the compiled binaries, module files, and headers.
 
 ## Core Modules
 
@@ -158,6 +177,9 @@ Publisher/subscriber event system with category-based routing.
 - `EventBus` - Central event dispatcher (max 16 handlers per category)
 - `IEventDispatcher` / `IEventListener` - Interfaces for custom implementations
 - `EventCategoryRegistry` - Category-based handler management
+
+**Event Categories:**
+- `AC_EVENT_CATEGORY_APPLICATION`, `WINDOW`, `FILE`, `PLUGIN`, `INPUT`, `LOG`
 
 **Features:**
 - Event propagation control
@@ -270,21 +292,18 @@ Cross-platform window management via GLFW.
 - `GLFWDriver` - GLFW-based window driver
 - `GLFW_Window` - GLFW window implementation
 
-> GLFW is linked statically through `glfw3dll.lib` and `glfw3.dll` to minimize versioning conflicts.
-
 ## Dependencies
 
 | Dependency                           | Version | Purpose                        |
 |--------------------------------------|---------|--------------------------------|
 | [GLFW](http://www.glfw.org)          | 3.4     | Window and input management    |
-| [Premake](https://premake.github.io) | 5.x     | Build system generation        |
+| [CMake](https://cmake.org)           | 4.2+    | Build system                   |
 | Visual Studio                        | 2022+   | C++ compiler (Windows)         |
-| C++ Standard                         | C++20   | Language standard with modules |
+| C++ Standard                         | C++23   | Language standard with modules |
 
 ## Planned Features
 
 - **Linux and Mac Support** - Platform-specific implementations
-- **CMake Support** - CMake build scripts for compatibility
 - **Event System Extensions** - Priority, queueing, and profiling
 - **Memory Profiling** - Allocation tracking and analysis
 - **Multithreading** - Thread pools, task scheduling, synchronization
