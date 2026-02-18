@@ -1,9 +1,12 @@
-module Aurion.Input;
+module;
 
-import Aurion.Types;
 #include <AurionLog.h>
 #include <memory>
 #include <cassert>
+
+module Aurion.Input;
+
+import Aurion.Types;
 
 namespace Aurion
 {

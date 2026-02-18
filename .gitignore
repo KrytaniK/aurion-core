@@ -3,13 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-# Aurion-Core-Specific files
-[Bb]in/
-[Bb]in-int/
-
-# Don't include files in the Sandbox Directory
-[Ss]andbox/**
-
 # JetBrains configuration
 .idea/
 
@@ -320,10 +313,6 @@ node_modules/
 *.dsw
 *.dsp
 
-# Visual Studio 6 technical files
-*.ncb
-*.aps
-
 # Visual Studio LightSwitch build output
 **/*.HTMLClient/GeneratedArtifacts
 **/*.DesktopClient/GeneratedArtifacts
@@ -416,5 +405,3 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 *.slnx
-
-.idea/

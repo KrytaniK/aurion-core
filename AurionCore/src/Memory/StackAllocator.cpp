@@ -1,7 +1,9 @@
-module Aurion.Memory;
+module;
 
 #include <cstdlib>
 #include <cstdint>
+
+module Aurion.Memory;
 
 namespace Aurion
 {

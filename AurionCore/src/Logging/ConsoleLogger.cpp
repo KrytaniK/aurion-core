@@ -1,8 +1,10 @@
-module Aurion.Log;
+module;
 
-#include <cstdarg>;
-#include <cstdio>;
-#include <iostream>;
+#include <cstdarg>
+#include <cstdio>
+#include <iostream>
+
+module Aurion.Log;
 
 namespace Aurion
 {
