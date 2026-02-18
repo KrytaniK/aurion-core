@@ -5,6 +5,6 @@ project(aurion-core VERSION 1.1.0)
 add_subdirectory(AurionCore)
 
 set(CPACK_PACKAGE_NAME "AurionCore")
-set(CPACK_GENERATOR "ZIP;TGZ")
+set(CPACK_GENERATOR "ZIP")
 
 include(CPACK)

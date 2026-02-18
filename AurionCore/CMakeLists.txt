@@ -12,22 +12,39 @@ file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "src/*.cpp")
 # Project is a shared library
 add_library(aurion-core SHARED ${SRC} ${MACROS})
 
+target_compile_features(aurion-core PUBLIC cxx_std_23)
+
 target_sources(aurion-core
         PUBLIC
             FILE_SET CXX_MODULES FILES ${MOD}
 )
 
-target_include_directories(aurion-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/macros")
-
-# Build targets
-install(TARGETS aurion-core
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+target_include_directories(aurion-core
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/macros>
+        $<INSTALL_INTERFACE:include>
 )
 
-install(FILES ${MOD} DESTINATION modules)
-install(DIRECTORY macros/ DESTINATION include)
+# Build targets
+include(GNUInstallDirs)
+
+# Track the library for export
+install(TARGETS aurion-core
+    EXPORT aurion-core-targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_DATADIR}/aurion-core
+)
+
+install(DIRECTORY macros/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# Generate the .cmake config file
+install(EXPORT aurion-core-targets
+    FILE aurion-core-config.cmake
+        NAMESPACE AurionCore::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/aurion-core
+)
 
 # Global Definitions
 target_compile_definitions(aurion-core PRIVATE AURION_CORE_EXPORTS)
