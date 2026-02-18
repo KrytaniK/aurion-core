@@ -26,6 +26,7 @@ install(TARGETS aurion-core
         ARCHIVE DESTINATION lib
 )
 
+install(FILES ${MOD} DESTINATION modules)
 install(DIRECTORY macros/ DESTINATION include)
 
 # Global Definitions
