@@ -5,6 +5,7 @@
 
 # JetBrains configuration
 .idea/
+cmake-build-*/
 
 # Solution files
 *.sln
