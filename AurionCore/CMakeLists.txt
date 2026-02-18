@@ -19,6 +19,15 @@ target_sources(aurion-core
 
 target_include_directories(aurion-core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/macros")
 
+# Build targets
+install(TARGETS aurion-core
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+)
+
+install(DIRECTORY macros/ DESTINATION include)
+
 # Global Definitions
 target_compile_definitions(aurion-core PRIVATE AURION_CORE_EXPORTS)
 
