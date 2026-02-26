@@ -1,6 +1,5 @@
 module;
 
-#include <AurionLog.h>
 #include <cassert>
 
 module Aurion.Events;

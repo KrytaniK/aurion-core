@@ -27,7 +27,7 @@ export namespace Aurion
 
 	constexpr const char* c_text_color_end = "\x1B[0m";
 
-	typedef AURION_API enum LogLevel
+	typedef enum LogLevel
 	{
 		AC_LOG_LEVEL_TRACE = 0x00,
 		AC_LOG_LEVEL_INFO = 0x01,

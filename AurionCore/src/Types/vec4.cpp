@@ -1,3 +1,7 @@
+module;
+
+#include <cstddef>
+
 module Aurion.Types;
 
 import :Math;

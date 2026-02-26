@@ -1,6 +1,7 @@
 module;
 
 #include <AurionExport.h>
+#include <cstddef>
 
 export module Aurion.Memory:LinearAllocator;
 
