@@ -10,19 +10,27 @@ file(GLOB_RECURSE MOD CONFIGURE_DEPENDS "modules/*.ixx")
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "src/*.cpp")
 
 # Project is a shared library
-add_library(aurion-core SHARED ${SRC} ${MACROS})
+add_library(aurion-core SHARED ${SRC})
 
 target_compile_features(aurion-core PUBLIC cxx_std_23)
 
 target_sources(aurion-core
-        PUBLIC
-            FILE_SET CXX_MODULES FILES ${MOD}
+    PUBLIC
+        FILE_SET HEADERS
+        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/macros
+        FILES ${MACROS}
+    PUBLIC
+        FILE_SET CXX_MODULES
+        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/modules
+        FILES ${MOD}
 )
 
 target_include_directories(aurion-core
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/macros>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/modules>
 )
 
 # Build targets
@@ -34,7 +42,8 @@ install(TARGETS aurion-core
         RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Aurion
+        FILE_SET HEADERS     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Aurion
+        FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Aurion/modules
 )
 
 install(DIRECTORY macros/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Aurion)
