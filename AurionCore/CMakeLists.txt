@@ -31,18 +31,18 @@ include(GNUInstallDirs)
 # Track the library for export
 install(TARGETS aurion-core
     EXPORT aurion-core-targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_DATADIR}/aurion-core
+        FILE_SET CXX_MODULES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Aurion
 )
 
-install(DIRECTORY macros/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY macros/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Aurion)
 
 # Generate the .cmake config file
 install(EXPORT aurion-core-targets
     FILE aurion-core-config.cmake
-        NAMESPACE AurionCore::
+        NAMESPACE Aurion::
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/aurion-core
 )
 
