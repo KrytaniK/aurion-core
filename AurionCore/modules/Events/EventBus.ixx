@@ -10,10 +10,10 @@ import :Event;
 export namespace Aurion
 {
 	// Event Category Alias
-	typedef AURION_API u16 EventCategoryID;
+	typedef u16 EventCategoryID;
 
 	// Core Event Handler Callback
-	typedef AURION_API void(*EventCallback)(EventBase*, void*);
+	typedef void(*EventCallback)(EventBase*, void*);
 
 	constexpr u8 MAX_EVENT_HANDLERS = 16;
 

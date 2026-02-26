@@ -21,7 +21,7 @@ export namespace Aurion
 		const char* p_ext = nullptr; // Extension string for interface-specific device capabilities (such as HID information)
 	};
 
-	typedef AURION_API u8 InputDeviceMemReqs;
+	typedef u8 InputDeviceMemReqs;
 
 	struct AURION_API InputDeviceCapabilities
 	{
