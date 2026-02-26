@@ -1,6 +1,7 @@
 module;
 
 #include <AurionExport.h>
+#include <cstddef>
 
 export module Aurion.Types:Math;
 
@@ -105,23 +106,23 @@ export namespace Aurion
 	// ------- Type Aliases -------
 	// ----------------------------
 
-	typedef AURION_API Vec2f32 fVec2;
-	typedef AURION_API Vec3f32 fVec3;
-	typedef AURION_API Vec4f32 fVec4;
+	typedef Vec2f32 fVec2;
+	typedef Vec3f32 fVec3;
+	typedef Vec4f32 fVec4;
 
-	typedef AURION_API Mat2f32 fMat2;
-	typedef AURION_API Mat3f32 fMat3;
-	typedef AURION_API Mat4f32 fMat4;
+	typedef Mat2f32 fMat2;
+	typedef Mat3f32 fMat3;
+	typedef Mat4f32 fMat4;
 
-	typedef AURION_API Quatf32 fQuat;
+	typedef Quatf32 fQuat;
 
-	typedef AURION_API Vec2f64 dVec2;
-	typedef AURION_API Vec3f64 dVec3;
-	typedef AURION_API Vec4f64 dVec4;
+	typedef Vec2f64 dVec2;
+	typedef Vec3f64 dVec3;
+	typedef Vec4f64 dVec4;
 
-	typedef AURION_API Mat2f64 dMat2;
-	typedef AURION_API Mat3f64 dMat3;
-	typedef AURION_API Mat4f64 dMat4;
+	typedef Mat2f64 dMat2;
+	typedef Mat3f64 dMat3;
+	typedef Mat4f64 dMat4;
 
-	typedef AURION_API Quatf64 dQuat;
+	typedef Quatf64 dQuat;
 }

@@ -101,12 +101,12 @@ namespace Aurion
 				// Exit fullscreen
 				glfwSetWindowMonitor(
 					(GLFWwindow*)m_native_handle, 
-					NULL, // Null forces windowed mode
+					nullptr, // Null forces windowed mode
 					(int)m_properties.x, 
 					(int)m_properties.y, 
 					(int)m_properties.width, 
 					(int)m_properties.height, 
-					NULL // Refresh rate ignored in this scenario
+					0 // Refresh rate ignored in this scenario
 				);
 
 				return;

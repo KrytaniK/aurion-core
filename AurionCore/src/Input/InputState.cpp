@@ -3,6 +3,7 @@ module;
 #include <AurionLog.h>
 #include <memory>
 #include <cassert>
+#include <cstring>
 
 module Aurion.Input;
 
