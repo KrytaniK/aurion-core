@@ -13,7 +13,7 @@ namespace Aurion
 	GLFW_Window::GLFW_Window()
 		: Window(), m_native_monitor(nullptr), m_cached_properties({})
 	{
-		
+
 	}
 
 	GLFW_Window::GLFW_Window(const WindowProperties& properties)
