@@ -1,6 +1,11 @@
 export module Aurion.FileSystem;
 
-export import :Interface;
-export import :Windows;
-export import :Linux;
-export import :Handle;
+export import :FileSystem;
+export import :Descriptor;
+export import :Entry;
+export import :Directory;
+export import :File;
+export import :LinuxFile;
+export import :LinuxDirectory;
+export import :WindowsFile;
+export import :WindowsDirectory;
