@@ -7,6 +7,8 @@ module;
 #include <sys/stat.h>
 #include <sys/unistd.h>
 #include <dirent.h>
+#include <cerrno>
+#include <new>
 
 module Aurion.FileSystem;
 
@@ -25,7 +27,7 @@ namespace Aurion
 
     const FSMetadata& FSDirectory_LinuxImpl::GetMetadata(const char* path, bool follow_links)
     {
-        struct stat info;
+        struct stat info{};
         if (stat(path, &info) != 0)
         {
             AURION_ERROR("Cannot Access File '%s'", path);
@@ -49,38 +51,15 @@ namespace Aurion
         return m_metadata;
     }
 
-    void FSDirectory_LinuxImpl::Open(const char* path, FSFlags flags)
+    void FSDirectory_LinuxImpl::Open(const char* path, u32 flags, u32 access)
     {
         if (m_descriptor.handle != -1)
             return;
 
-        int l_flags = 0;
-        if (l_flags & FS_FLAGS_CREATE_IF_MISSING)
-            l_flags |= O_CREAT;
-
-        m_descriptor.handle = open(path, l_flags |= O_DIRECTORY);
+        m_descriptor.handle = open(path, static_cast<int>(flags |= O_DIRECTORY), static_cast<int>(access));
 
         if (m_descriptor.handle == -1)
             return;
-
-        struct stat info;
-        fstat(m_descriptor.handle, &info);
-
-        // Bail if not a regular file
-        if (!S_ISDIR(info.st_mode))
-        {
-            AURION_ERROR("'%s' is not a regular file", path);
-            close(m_descriptor.handle);
-            m_descriptor.handle = -1;
-            return;
-        }
-
-        // Go ahead and fill out metadata info
-        m_metadata.size = info.st_size;
-        m_metadata.type = FS_TYPE_DIRECTORY;
-        m_metadata.created_at = 0; // Linux doesn't reliably track creation time across distros
-        m_metadata.accessed_at = info.st_atime;
-        m_metadata.modified_at = info.st_mtime;
     }
 
     void FSDirectory_LinuxImpl::Close()
@@ -92,12 +71,34 @@ namespace Aurion
         m_descriptor.handle = -1;
     }
 
+    bool FSDirectory_LinuxImpl::Delete(const char* path)
+    {
+        if (rmdir(path) != 0)
+        {
+            AURION_ERROR("Cannot Delete Directory '%s': %s", path, strerror(errno));
+            return false;
+        }
+
+        return true;
+    }
+
+    bool FSDirectory_LinuxImpl::DeleteAll(const char* path)
+    {
+        // Open Directory
+        this->Open(path, 0, 0644);
+
+        // Loop through contents:
+            // Unlink files, recursively remove contents
+
+        return false;
+    }
+
     bool FSDirectory_LinuxImpl::Exists(const char* path)
     {
         return access(path, F_OK) == 0;
     }
 
-    void FSDirectory_LinuxImpl::List(const char* path, FSEntry** entries, u64& count, const FSFlags& flags)
+    void FSDirectory_LinuxImpl::List(const char* path, FSCollection* entries, u64& count)
     {
         count = 0;
 
@@ -105,10 +106,10 @@ namespace Aurion
         if (!dir)
             return;
 
-        struct dirent* entry;
+        dirent* entry;
 
         // First pass: count entries
-        while ((entry = readdir(dir)) != NULL)
+        while ((entry = readdir(dir)) != nullptr)
         {
             // skip . and ..
             if (entry->d_name[0] == '.')
@@ -123,13 +124,13 @@ namespace Aurion
             count++;
         }
 
-        // Allocate
-        entries = new FSEntry*[count];
+        // Bail if only getting the number of entries
+        if (!entries) return;
 
         // Second pass: populate entries
         rewinddir(dir);
         u64 index = 0;
-        while ((entry = readdir(dir)) != NULL)
+        while ((entry = readdir(dir)) != nullptr)
         {
             // skip . and ..
             if (entry->d_name[0] == '.')
@@ -144,20 +145,25 @@ namespace Aurion
             // Get path length
             u64 path_len = strlen(path);
             u64 entry_len = strlen(entry->d_name);
+            u64 full_len = path_len + entry_len + 2;
 
             // Allocate
-            char full_path[path_len + entry_len + 1];
+            char full_path[full_len];
 
             // Piece together full path
             strcpy(full_path, path);
-            strcat(full_path, "/");
+
+            if (path_len > 0 && path[path_len - 1] != '/')
+                strcat(full_path, "/");
+
             strcat(full_path, entry->d_name);
+            full_path[full_len - 1] = '\0';
 
             // Generate Entry
             if (entry->d_type == DT_DIR)
-                entries[index++] = new FSDirectory(full_path);
+                entries->directories.EmplaceBack(static_cast<const char*>(full_path));
             else if (entry->d_type == DT_REG)
-                entries[index++] = new FSFile(full_path);
+                entries->files.EmplaceBack(static_cast<const char*>(full_path));
         }
     }
 }

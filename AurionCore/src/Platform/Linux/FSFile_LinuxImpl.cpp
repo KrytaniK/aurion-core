@@ -1,10 +1,12 @@
 module;
 
 #include <AurionLog.h>
+#include <cstring>
+#include <cerrno>
 
-#include <sys/unistd.h>
+#include <unistd.h>
 #include <sys/stat.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 
 module Aurion.FileSystem;
 
@@ -23,7 +25,7 @@ namespace Aurion
 
     const FSMetadata& FSFile_LinuxImpl::GetMetadata(const char* path, bool follow_links)
     {
-        struct stat info;
+        struct stat info{};
         if (stat(path, &info) != 0)
         {
             AURION_ERROR("Cannot Access File '%s'", path);
@@ -47,34 +49,16 @@ namespace Aurion
         return m_metadata;
     }
 
-    void FSFile_LinuxImpl::Open(const char* path, FSFlags flags)
+    void FSFile_LinuxImpl::Open(const char* path, u32 flags, u32 access)
     {
         if (m_descriptor.handle != -1)
             return;
 
-        m_descriptor.handle = open(path, ToLinuxFlags(flags));
+        // Open the file, opt for owner read/write, others read
+        m_descriptor.handle = open(path, static_cast<int>(flags), static_cast<int>(access));
 
         if (m_descriptor.handle == -1)
-            return;
-
-        struct stat info;
-        fstat(m_descriptor.handle, &info);
-
-        // Bail if not a regular file
-        if (!S_ISREG(info.st_mode))
-        {
-            AURION_ERROR("'%s' is not a regular file", path);
-            close(m_descriptor.handle);
-            m_descriptor.handle = -1;
-            return;
-        }
-
-        // Go ahead and fill out metadata info
-        m_metadata.size = info.st_size;
-        m_metadata.type = FS_TYPE_FILE;
-        m_metadata.created_at = 0; // Linux doesn't reliably track creation time across distros
-        m_metadata.accessed_at = info.st_atime;
-        m_metadata.modified_at = info.st_mtime;
+            AURION_ERROR("Cannot Open File '%s'", path);
     }
 
     void FSFile_LinuxImpl::Close()
@@ -82,7 +66,9 @@ namespace Aurion
         if (m_descriptor.handle == -1)
             return;
 
-        close(m_descriptor.handle);
+        if (close(m_descriptor.handle) != 0)
+            AURION_ERROR("Failed to close File Descriptor %d: %s", m_descriptor.handle, strerror(errno));
+
         m_descriptor.handle = -1;
     }
 
@@ -90,23 +76,6 @@ namespace Aurion
     {
         return access(path, F_OK) == 0;
     }
-
-    int FSFile_LinuxImpl::ToLinuxFlags(FSFlags flags)
-    {
-        int result = 0;
-
-        if (flags & FS_FLAGS_READ_ONLY)
-            result |= O_RDONLY;
-        if (flags & FS_FLAGS_WRITE_ONLY)
-            result |= O_WRONLY;
-        if (flags & FS_FLAGS_READ_WRITE)
-            result |= O_RDWR;
-        if (flags & FS_FLAGS_APPEND)
-            result |= O_APPEND;
-        if (flags & FS_FLAGS_CREATE_IF_MISSING)
-            result |= O_CREAT;
-
-        return result;
-    }
 }
 #endif
+

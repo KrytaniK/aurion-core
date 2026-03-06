@@ -1,6 +1,7 @@
 module;
 
 #include <AurionExport.h>
+#include <AurionLog.h>
 
 #include <cstddef>
 #include <assert.h>
@@ -18,6 +19,15 @@ export namespace Aurion
     public:
         Vector();
         Vector(size_t size);
+
+        // Move-only
+        Vector(Vector&& other);
+        Vector& operator=(Vector&& other);
+
+        // No Copies
+        Vector(const Vector& other) = delete;
+        Vector& operator=(const Vector& other) = delete;
+
         ~Vector();
 
         void Reserve(size_t size);
@@ -81,6 +91,38 @@ export namespace Aurion
     }
 
     template <typename T>
+    Vector<T>::Vector(Vector&& other)
+        : m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity)
+    {
+        other.m_data = nullptr;
+        other.m_size = 0;
+        other.m_capacity = 0;
+    }
+
+    template <typename T>
+    Vector<T>& Vector<T>::operator=(Vector&& other)
+    {
+        if (this == &other) return *this;
+
+        // Destroy current contents
+        for (size_t i = 0; i < m_size; i++)
+            m_data[i].~T();
+
+        free(m_data);
+
+        // Now own other's data
+        m_data = other.m_data;
+        m_size = other.m_size;
+        m_capacity = other.m_capacity;
+
+        other.m_data = nullptr;
+        other.m_size = 0;
+        other.m_capacity = 0;
+
+        return *this;
+    }
+
+    template <typename T>
     Vector<T>::~Vector()
     {
         // cleanup
@@ -93,7 +135,7 @@ export namespace Aurion
     template <typename T>
     void Vector<T>::Reserve(size_t size)
     {
-        if (size <= m_capacity)
+        if (size <= m_capacity || size == 0)
             return;
 
         // Adjust capacity
@@ -104,6 +146,8 @@ export namespace Aurion
     template <typename T>
     void Vector<T>::ShrinkToFit()
     {
+        if (m_size == 0) return;
+
         m_capacity = m_size;
         this->Reallocate(m_capacity);
     }
@@ -135,9 +179,19 @@ export namespace Aurion
             return m_data[0];
         }
 
-        // Case 2: Have room: simply move existing elements
+        // Case 2: Vector Empty
+        if (m_size == 0)
+        {
+            new (m_data) T(value);
+            m_size++;
+            return m_data[0];
+        }
+
+        // Case 3: Have room: simply move existing elements
         for (size_t i = m_size - 1; i > 0; i--)
             m_data[i] = static_cast<T&&>(m_data[i - 1]);
+        m_data[0].~T();
+
 
         // Then copy the value into the array at the front
         new (m_data) T(value);
@@ -165,6 +219,8 @@ export namespace Aurion
     template <typename T>
     T& Vector<T>::Insert(size_t index, const T& value)
     {
+        assert(index <= m_size);
+
         // Case 1: Resize needed
         if (m_size == m_capacity)
         {
@@ -231,7 +287,15 @@ export namespace Aurion
             return m_data[0];
         }
 
-        // Case 2: Have room: simply move existing elements
+        // Case 2: Vector Empty
+        if (m_size == 0)
+        {
+            new (m_data) T(static_cast<Args&&>(args)...);
+            m_size++;
+            return m_data[0];
+        }
+
+        // Case 3: Have room: simply move existing elements
         for (size_t i = m_size; i > 0; i--)
             m_data[i] = static_cast<T&&>(m_data[i - 1]);
 
@@ -263,6 +327,8 @@ export namespace Aurion
     template <typename... Args>
     T& Vector<T>::Emplace(size_t index, Args&&... args)
     {
+        assert(index <= m_size);
+
         // Case 1: Resize needed
         if (m_size == m_capacity)
         {
@@ -324,8 +390,11 @@ export namespace Aurion
         m_data[index].~T();
 
         // Then shift remaining elements to the left
-        for (size_t i = index; i < m_size; i++)
-            m_data[i] = static_cast<T&&>(m_data[i + 1]);
+        for (size_t i = index; i < m_size - 1; i++)
+        {
+            new (m_data + i) T(static_cast<T&&>(m_data[i + 1]));
+            m_data[i + 1].~T();
+        }
 
         // Adjust size
         m_size--;
@@ -379,13 +448,15 @@ export namespace Aurion
     {
         // Allocate new size
         T* new_data = static_cast<T*>(calloc(new_size, sizeof(T)));
+        if (!new_data || new_data == nullptr)
+            AURION_ERROR("Failed to allocate memory for new vector data");
 
         // Move data to new array
         for (size_t i = 0; i < m_size; i++)
             new (new_data + i) T(static_cast<T&&>(m_data[i]));
 
         // clean up old memory
-        for (size_t i = m_size; i < new_size; i++)
+        for (size_t i = 0; i < m_size; i++)
             m_data[i].~T();
 
         free(m_data);

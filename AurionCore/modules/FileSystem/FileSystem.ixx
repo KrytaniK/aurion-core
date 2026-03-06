@@ -2,11 +2,12 @@ module;
 
 #include <AurionExport.h>
 
-export module Aurion.FileSystem:FileSystem;
+export module Aurion.FileSystem:FS;
 
-import Aurion.Memory;
 import :File;
 import :Directory;
+
+import Aurion.Memory;
 
 export namespace Aurion
 {
@@ -16,13 +17,13 @@ export namespace Aurion
         FileSystem();
         ~FileSystem();
 
-        FSFile* GetFile(const char* path, const FSFlags& flags = FS_FLAGS_NONE);
-        FSDirectory* GetDirectory(const char* path, const FSFlags& flags = FS_FLAGS_NONE);
+        FSFile* GetFile(const char* path);
+        FSDirectory* GetDirectory(const char* path);
 
-        void RemoveFile(const char* path);
-        void RemoveFile(FSFile* file);
+        bool RemoveEntry(const FSEntry* entry);
 
-        void RemoveDirectory(const char* path);
-        void RemoveDirectory(FSDirectory* dir);
+    private:
+        Vector<FSFile> m_files;
+        Vector<FSDirectory> m_directories;
     };
 }

@@ -19,13 +19,10 @@ export namespace Aurion
 
         const FSMetadata& GetMetadata(const char* path, bool follow_links) override;
 
-        void Open(const char* path, FSFlags flags) override;
+        void Open(const char* path, u32 flags, u32 access) override;
         void Close() override;
 
         bool Exists(const char* path) override;
-
-    private:
-        int ToLinuxFlags(FSFlags flags);
 
     private:
         FSDescriptor m_descriptor;
