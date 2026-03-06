@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.2)
 
-project(aurion-core VERSION 1.1.1)
+project(aurion-core VERSION 1.2.0)
 
 add_subdirectory(AurionCore)
 
