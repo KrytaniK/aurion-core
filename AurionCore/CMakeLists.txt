@@ -30,7 +30,7 @@ target_include_directories(aurion-core
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/macros>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/modules>
         $<INSTALL_INTERFACE:include>
-        $<INSTALL_INTERFACE:include/modules>
+        $<INSTALL_INTERFACE:include/Aurion/modules>
 )
 
 # Build targets
