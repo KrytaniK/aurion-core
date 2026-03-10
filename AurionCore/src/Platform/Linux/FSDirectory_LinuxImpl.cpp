@@ -1,3 +1,4 @@
+#ifdef AURION_PLATFORM_LINUX
 module;
 
 #include <AurionLog.h>
@@ -12,7 +13,6 @@ module;
 
 module Aurion.FileSystem;
 
-#ifdef AURION_PLATFORM_LINUX
 namespace Aurion
 {
     FSDirectory_LinuxImpl::~FSDirectory_LinuxImpl()
@@ -51,12 +51,12 @@ namespace Aurion
         return m_metadata;
     }
 
-    void FSDirectory_LinuxImpl::Open(const char* path, u32 flags, u32 access)
+    void FSDirectory_LinuxImpl::Open(const char* path, const FSFileOpenParams& params)
     {
         if (m_descriptor.handle != -1)
             return;
 
-        m_descriptor.handle = open(path, static_cast<int>(flags |= O_DIRECTORY), static_cast<int>(access));
+        m_descriptor.handle = open(path, params.flags | O_DIRECTORY, params.access);
 
         if (m_descriptor.handle == -1)
             return;
@@ -108,49 +108,54 @@ namespace Aurion
 
         dirent* entry;
 
-        // First pass: count entries
+        // First pass: count files and directories
+        u64 file_count = 0;
+        u64 dir_count = 0;
         while ((entry = readdir(dir)) != nullptr)
         {
-            // skip . and ..
             if (entry->d_name[0] == '.')
             {
                 if (entry->d_name[1] == '\0' ||
                     (entry->d_name[1] == '.' && entry->d_name[2] == '\0'))
-                {
                     continue;
-                }
             }
+
+            if (entry->d_type == DT_DIR)
+                dir_count++;
+            else if (entry->d_type == DT_REG)
+                file_count++;
 
             count++;
         }
 
-        // Bail if only getting the number of entries
-        if (!entries) return;
+        // Bail if only getting the count
+        if (!entries)
+        {
+            closedir(dir);
+            return;
+        }
 
-        // Second pass: populate entries
+        // Allocate storage in the collection
+        entries->Allocate(file_count, dir_count);
+
+        // Second pass: construct entries via placement new
         rewinddir(dir);
-        u64 index = 0;
+        u64 fi = 0;
+        u64 di = 0;
         while ((entry = readdir(dir)) != nullptr)
         {
-            // skip . and ..
             if (entry->d_name[0] == '.')
             {
                 if (entry->d_name[1] == '\0' ||
                     (entry->d_name[1] == '.' && entry->d_name[2] == '\0'))
-                {
                     continue;
-                }
             }
 
-            // Get path length
             u64 path_len = strlen(path);
             u64 entry_len = strlen(entry->d_name);
             u64 full_len = path_len + entry_len + 2;
 
-            // Allocate
             char full_path[full_len];
-
-            // Piece together full path
             strcpy(full_path, path);
 
             if (path_len > 0 && path[path_len - 1] != '/')
@@ -159,12 +164,13 @@ namespace Aurion
             strcat(full_path, entry->d_name);
             full_path[full_len - 1] = '\0';
 
-            // Generate Entry
             if (entry->d_type == DT_DIR)
-                entries->directories.EmplaceBack(static_cast<const char*>(full_path));
+                new (entries->Directories() + di++) FSDirectory(static_cast<const char*>(full_path));
             else if (entry->d_type == DT_REG)
-                entries->files.EmplaceBack(static_cast<const char*>(full_path));
+                new (entries->Files() + fi++) FSFile(static_cast<const char*>(full_path));
         }
+
+        closedir(dir);
     }
 }
 #endif

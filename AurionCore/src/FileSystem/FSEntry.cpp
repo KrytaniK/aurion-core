@@ -12,14 +12,17 @@ namespace Aurion
     FSEntry::FSEntry(const char* path)
         : m_path(nullptr)
     {
-        if (!path || strlen(path) == 0)
+        if (!path || path == nullptr) return;
+
+        if (strlen(path) == 0)
         {
             AURION_ERROR("Failed to create FSEntry: Invalid path");
             return;
         }
 
-        m_path = static_cast<char*>(calloc(strlen(path) + 1, sizeof(char)));
-        strcpy(m_path, path);
+        const u64 str_len = strlen(path) + 1;
+        m_path = static_cast<char*>(calloc(str_len, sizeof(char)));
+        strcpy_s(m_path, str_len, path);
     }
 
     FSEntry::~FSEntry()

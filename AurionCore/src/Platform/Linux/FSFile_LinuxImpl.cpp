@@ -1,5 +1,6 @@
 module;
 
+#ifdef AURION_PLATFORM_LINUX
 #include <AurionLog.h>
 #include <cstring>
 #include <cerrno>
@@ -7,6 +8,7 @@ module;
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#endif
 
 module Aurion.FileSystem;
 
@@ -49,7 +51,7 @@ namespace Aurion
         return m_metadata;
     }
 
-    void FSFile_LinuxImpl::Open(const char* path, u32 flags, u32 access)
+    void FSFile_LinuxImpl::Open(const char* const FSFileOpenParams& params)
     {
         if (m_descriptor.handle != -1)
             return;
@@ -75,6 +77,38 @@ namespace Aurion
     bool FSFile_LinuxImpl::Exists(const char* path)
     {
         return access(path, F_OK) == 0;
+    }
+
+    void FSFile_LinuxImpl::Read(void* buffer, u64 size)
+    {
+        read(m_descriptor.handle, buffer, size);
+    }
+
+    void FSFile_LinuxImpl::Write(const void* buffer, u64 size)
+    {
+        if (write(m_descriptor.handle, buffer, size) != size)
+            AURION_ERROR("Write operation failed: %s", strerror(errno));
+    }
+
+    bool FSFile_LinuxImpl::Unlink(const char* path)
+    {
+        if (unlink(path) != 0)
+        {
+            AURION_ERROR("FSFile Unlink operation failed: %s", strerror(errno));
+            return false;
+        }
+
+        return true;
+    }
+
+    void FSFile_LinuxImpl::Seek(i64 offset, int whence)
+    {
+        lseek(m_descriptor.handle, offset, whence);
+    }
+
+    u64 FSFile_LinuxImpl::Tell()
+    {
+        return lseek(m_descriptor.handle, 0l, SEEK_CUR);
     }
 }
 #endif

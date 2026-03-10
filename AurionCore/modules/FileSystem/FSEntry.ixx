@@ -26,7 +26,7 @@ export namespace Aurion
 
         virtual const FSMetadata& GetMetadata(bool follow_links) = 0;
 
-        virtual void Open(u32 flags, u32 access) = 0;
+        virtual void Open(const FSFileOpenParams& params) = 0;
         virtual void Close() = 0;
 
         virtual bool Exists() = 0;
@@ -43,7 +43,7 @@ export namespace Aurion
         virtual const FSDescriptor& GetDescriptor() = 0;
         virtual const FSMetadata& GetMetadata(const char* path, bool follow_links) = 0;
 
-        virtual void Open(const char* path, u32 flags, u32 access) = 0;
+        virtual void Open(const char* path, const FSFileOpenParams& params) = 0;
         virtual void Close() = 0;
 
         virtual bool Exists(const char* path) = 0;

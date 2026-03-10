@@ -1,21 +1,22 @@
 module;
 
-#include <unistd.h>
 #include <AurionLog.h>
-#include <cstring>
-
-#include <fcntl.h>
-#include <cerrno>
 
 module Aurion.FileSystem;
 
 namespace Aurion
 {
+    FSFile::FSFile()
+        : FSEntry(nullptr), m_impl(nullptr)
+    {
+
+    }
+
     FSFile::FSFile(const char* path)
         : FSEntry(path), m_impl(nullptr)
     {
 #ifdef AURION_PLATFORM_WINDOWS
-
+        m_impl = new FSFile_WindowsImpl();
 #elifdef AURION_PLATFORM_LINUX
         m_impl = new FSFile_LinuxImpl();
 #else
@@ -41,8 +42,8 @@ namespace Aurion
 
     FSFile& FSFile::operator=(FSFile&& other) noexcept
     {
-        FSEntry::operator=(static_cast<FSEntry&&>(other));
         if (this == &other) return *this;
+        FSEntry::operator=(static_cast<FSEntry&&>(other));
 
         if (m_impl) delete m_impl;
         m_impl = other.m_impl;
@@ -56,7 +57,7 @@ namespace Aurion
         return m_impl->GetMetadata(m_path, follow_links);
     }
 
-    void FSFile::Open(u32 flags, u32 access)
+    void FSFile::Open(const FSFileOpenParams& params)
     {
         if (this->IsOpen())
         {
@@ -64,7 +65,7 @@ namespace Aurion
             return;
         }
 
-        m_impl->Open(m_path, static_cast<int>(flags), static_cast<int>(access));
+        m_impl->Open(m_path, params);
     }
 
     void FSFile::Close()
@@ -90,74 +91,36 @@ namespace Aurion
 
     void FSFile::Read(void* buffer, u64 size)
     {
-#ifdef AURION_PLATFORM_WINDOWS
-
-#elifdef AURION_PLATFORM_LINUX
-        read(m_impl->GetDescriptor().handle, buffer, size);
-#else
-#endif
+        m_impl->Read(buffer, size);
     }
 
     void FSFile::Write(const void* buffer, u64 size)
     {
-#ifdef AURION_PLATFORM_WINDOWS
-
-#elifdef AURION_PLATFORM_LINUX
-        if (write(m_impl->GetDescriptor().handle, buffer, size) != size)
-            AURION_ERROR("Write operation failed: %s", strerror(errno));
-#else
-#endif
+        m_impl->Write(buffer, size);
     }
 
     bool FSFile::Unlink()
     {
-#ifdef AURION_PLATFORM_WINDOWS
-
-#elifdef AURION_PLATFORM_LINUX
-        if (unlink(GetPath()) != 0)
-        {
-            AURION_ERROR("FSFile Unlink operation failed: %s", strerror(errno));
-            return false;
-        }
-#else
-#endif
-
-        return true;
+        return m_impl->Unlink(m_path);
     }
 
     bool FSFile::Delete()
     {
         // Close the file if it's open
-        if (this->IsOpen())
-            this->Close();
+        if (IsOpen())
+            Close();
 
-        // Then unlink
-        #ifdef AURION_PLATFORM_WINDOWS
-
-        #elifdef AURION_PLATFORM_LINUX
-                if (unlink(m_path) != 0)
-                {
-                    AURION_ERROR("FSFile Delete operation failed: %s", strerror(errno));
-                    return false;
-                }
-        #else
-        #endif
-
-        return true;
+        // Then remove from OS FileSystem
+        return m_impl->Unlink(m_path);
     }
 
     void FSFile::Seek(i64 offset, int whence)
     {
-#ifdef AURION_PLATFORM_WINDOWS
-
-#elifdef AURION_PLATFORM_LINUX
-        lseek(m_impl->GetDescriptor().handle, offset, whence);
-#else
-#endif
+        m_impl->Seek(offset, whence);
     }
 
     u64 FSFile::Tell()
     {
-        return lseek(m_impl->GetDescriptor().handle, 0l, SEEK_CUR);
+        return m_impl->Tell();
     }
 }

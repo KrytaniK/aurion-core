@@ -8,7 +8,6 @@ import :Entry;
 import :File;
 
 import Aurion.Types;
-import Aurion.Memory;
 
 export namespace Aurion
 {
@@ -22,7 +21,7 @@ export namespace Aurion
 
         const FSMetadata& GetMetadata(const char* path, bool follow_links) override = 0;
 
-        void Open(const char* path, u32 flags, u32 access) override = 0;
+        void Open(const char* path, const FSFileOpenParams& params) override = 0;
         void Close() override = 0;
 
         virtual bool Delete(const char* path) = 0;
@@ -30,12 +29,13 @@ export namespace Aurion
 
         bool Exists(const char* path) override = 0;
 
-        virtual void List(const char* path, FSCollection* entries, u64& count) = 0;
+        virtual FSCollection List(const char* path) = 0;
     };
 
     class AURION_API FSDirectory : public FSEntry
     {
     public:
+        FSDirectory();
         explicit FSDirectory(const char* path);
         ~FSDirectory() override;
 
@@ -47,7 +47,7 @@ export namespace Aurion
 
         const FSMetadata& GetMetadata(bool follow_links) override;
 
-        void Open(u32 flag, u32 access) override;
+        void Open(const FSFileOpenParams& params) override;
         void Close() override;
 
         bool Delete();
@@ -57,15 +57,9 @@ export namespace Aurion
 
         bool IsOpen();
 
-        void List(FSCollection* entries, u64& count);
+        FSCollection List();
 
     private:
         FSDirectoryImpl* m_impl;
-    };
-
-    struct AURION_API FSCollection
-    {
-        Vector<FSFile> files;
-        Vector<FSDirectory> directories;
     };
 }

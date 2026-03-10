@@ -1,18 +1,19 @@
 module;
 
-export module Aurion.FileSystem:LinuxDirectory;
+export module Aurion.FileSystem:WindowsDirectory;
 
 import :Entry;
 import :Directory;
 import :Descriptor;
 
-#ifdef AURION_PLATFORM_LINUX
+#ifdef AURION_PLATFORM_WINDOWS
 export namespace Aurion
 {
-    class FSDirectory_LinuxImpl : public FSDirectoryImpl
+    class FSDirectory_WindowsImpl : public FSDirectoryImpl
     {
     public:
-        ~FSDirectory_LinuxImpl() override;
+        FSDirectory_WindowsImpl();
+        ~FSDirectory_WindowsImpl() override;
 
         const FSDescriptor& GetDescriptor() override;
 
@@ -26,7 +27,7 @@ export namespace Aurion
 
         bool Exists(const char* path) override;
 
-        void List(const char* path, FSCollection* entries) override;
+        FSCollection List(const char* path) override;
 
     private:
         FSDescriptor m_descriptor;

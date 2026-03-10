@@ -2,18 +2,40 @@ module;
 
 #include <AurionExport.h>
 
-export module Aurion.FileSystem:LinuxFile;
+#ifdef AURION_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+export module Aurion.FileSystem:WindowsFile;
 
 import :File;
 import :Descriptor;
 
-#ifdef AURION_PLATFORM_LINUX
+#ifdef AURION_PLATFORM_WINDOWS
 export namespace Aurion
 {
-    class AURION_API FSFile_LinuxImpl : public FSFileImpl
+    constexpr auto ToQuad = [](DWORD low, DWORD high) -> u64
+    {
+        ULARGE_INTEGER li{};
+        li.LowPart = low;
+        li.HighPart = high;
+        return li.QuadPart;
+    };
+
+    constexpr auto FileTimeToQuad = [](const FILETIME& filetime) -> u64
+    {
+        ULARGE_INTEGER ull{};
+        ull.LowPart = filetime.dwLowDateTime;
+        ull.HighPart = filetime.dwHighDateTime;
+        return ull.QuadPart;
+    };
+
+    class AURION_API FSFile_WindowsImpl : public FSFileImpl
     {
     public:
-        ~FSFile_LinuxImpl() override;
+        FSFile_WindowsImpl();
+        ~FSFile_WindowsImpl() override;
 
         const FSDescriptor& GetDescriptor() override;
 

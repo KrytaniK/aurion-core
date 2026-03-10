@@ -1,12 +1,22 @@
+module;
+
+#include <AurionLog.h>
+#include <new>
+
 module Aurion.FileSystem;
 
 namespace Aurion
 {
+    FSDirectory::FSDirectory()
+        : FSEntry(nullptr), m_impl(nullptr)
+    {
+    }
+
     FSDirectory::FSDirectory(const char* path)
         : FSEntry(path), m_impl(nullptr)
     {
 #ifdef AURION_PLATFORM_WINDOWS
-        m_impl = new FSDirectory_WinImpl();
+        m_impl = new FSDirectory_WindowsImpl();
 #elifdef AURION_PLATFORM_LINUX
         m_impl = new FSDirectory_LinuxImpl();
 #else
@@ -32,8 +42,8 @@ namespace Aurion
 
     FSDirectory& FSDirectory::operator=(FSDirectory&& other) noexcept
     {
-        FSEntry::operator=(static_cast<FSEntry&&>(other));
         if (this == &other) return *this;
+        FSEntry::operator=(static_cast<FSEntry&&>(other));
 
         if (m_impl) delete m_impl;
         m_impl = other.m_impl;
@@ -47,9 +57,9 @@ namespace Aurion
         return m_impl->GetMetadata(m_path, follow_links);
     }
 
-    void FSDirectory::Open(u32 flags, u32 access)
+    void FSDirectory::Open(const FSFileOpenParams& params)
     {
-        m_impl->Open(m_path, static_cast<int>(flags), static_cast<int>(access));
+        m_impl->Open(m_path, params);
     }
 
     void FSDirectory::Close()
@@ -83,8 +93,8 @@ namespace Aurion
 #endif
     }
 
-    void FSDirectory::List(FSCollection* entries, u64& count)
+    FSCollection FSDirectory::List()
     {
-        m_impl->List(m_path, entries, count);
+        return m_impl->List(m_path);
     }
 }
