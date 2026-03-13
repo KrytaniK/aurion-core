@@ -27,7 +27,7 @@ export namespace Aurion
 
         bool Exists(const char* path) override;
 
-        FSCollection List(const char* path) override;
+        FSCollection List(const char* path, bool counts_only) override;
 
     private:
         FSDescriptor m_descriptor;

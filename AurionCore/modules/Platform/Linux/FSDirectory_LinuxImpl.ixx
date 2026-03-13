@@ -7,11 +7,13 @@ import :Directory;
 import :Descriptor;
 
 #ifdef AURION_PLATFORM_LINUX
+#include <dirent.h>
 export namespace Aurion
 {
     class FSDirectory_LinuxImpl : public FSDirectoryImpl
     {
     public:
+        FSDirectory_LinuxImpl();
         ~FSDirectory_LinuxImpl() override;
 
         const FSDescriptor& GetDescriptor() override;
@@ -26,11 +28,12 @@ export namespace Aurion
 
         bool Exists(const char* path) override;
 
-        void List(const char* path, FSCollection* entries) override;
+        FSCollection List(const char* path, bool counts_only) override;
 
     private:
         FSDescriptor m_descriptor;
         FSMetadata m_metadata;
+        DIR* m_dirp;
     };
 }
 #endif

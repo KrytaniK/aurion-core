@@ -29,7 +29,7 @@ export namespace Aurion
 
         bool Exists(const char* path) override = 0;
 
-        virtual FSCollection List(const char* path) = 0;
+        virtual FSCollection List(const char* path, bool counts_only) = 0;
     };
 
     class AURION_API FSDirectory : public FSEntry
@@ -57,7 +57,7 @@ export namespace Aurion
 
         bool IsOpen();
 
-        FSCollection List();
+        FSCollection List(bool counts_only = false);
 
     private:
         FSDirectoryImpl* m_impl;

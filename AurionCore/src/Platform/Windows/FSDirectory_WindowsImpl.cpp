@@ -107,7 +107,6 @@ namespace Aurion
         delete[] entries.files;
         delete[] entries.directories;
 
-        // entries destructor handles cleanup
         return Delete(path);
     }
 
@@ -116,7 +115,7 @@ namespace Aurion
         return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
     }
 
-    FSCollection FSDirectory_WindowsImpl::List(const char* path)
+    FSCollection FSDirectory_WindowsImpl::List(const char* path, bool counts_only)
     {
         FSCollection entries{
             .file_count = 0,
@@ -154,6 +153,9 @@ namespace Aurion
             else
                 entries.file_count++;
         } while (FindNextFileA(entry, &efData) != 0);
+
+        // Return early if only the counts were requested
+        if (counts_only) return entries;
 
         // Heap allocate storage in the collection
         entries.files = new FSFile[entries.file_count];

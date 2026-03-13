@@ -93,8 +93,8 @@ namespace Aurion
 #endif
     }
 
-    FSCollection FSDirectory::List()
+    FSCollection FSDirectory::List(bool counts_only)
     {
-        return m_impl->List(m_path);
+        return m_impl->List(m_path, counts_only);
     }
 }

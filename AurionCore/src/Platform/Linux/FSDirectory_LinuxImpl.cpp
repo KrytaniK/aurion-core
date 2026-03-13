@@ -15,6 +15,11 @@ module Aurion.FileSystem;
 
 namespace Aurion
 {
+    FSDirectory_LinuxImpl::FSDirectory_LinuxImpl()
+        : m_descriptor({}), m_metadata({}), m_dirp(nullptr)
+    {
+    }
+
     FSDirectory_LinuxImpl::~FSDirectory_LinuxImpl()
     {
         FSDirectory_LinuxImpl::Close();
@@ -30,14 +35,14 @@ namespace Aurion
         struct stat info{};
         if (stat(path, &info) != 0)
         {
-            AURION_ERROR("Cannot Access File '%s'", path);
+            AURION_ERROR("Cannot Access Directory '%s'", path);
             return m_metadata;
         }
 
         // Bail if not a regular file
         if (!S_ISDIR(info.st_mode))
         {
-            AURION_ERROR("'%s' is not a regular file", path);
+            AURION_ERROR("'%s' is not a directory", path);
             return m_metadata;
         }
 
@@ -56,18 +61,17 @@ namespace Aurion
         if (m_descriptor.handle != -1)
             return;
 
-        m_descriptor.handle = open(path, params.flags | O_DIRECTORY, params.access);
-
-        if (m_descriptor.handle == -1)
-            return;
+        // Parameters are ignored on Linux
+        m_dirp = opendir(path);
+        m_descriptor.handle = dirfd(m_dirp);
     }
 
     void FSDirectory_LinuxImpl::Close()
     {
-        if (m_descriptor.handle == -1)
+        if (m_descriptor.handle == -1 || m_dirp == nullptr)
             return;
 
-        close(m_descriptor.handle);
+        closedir(m_dirp);
         m_descriptor.handle = -1;
     }
 
@@ -84,13 +88,22 @@ namespace Aurion
 
     bool FSDirectory_LinuxImpl::DeleteAll(const char* path)
     {
-        // Open Directory
-        this->Open(path, 0, 0644);
+        FSCollection entries = List(path, false);
 
-        // Loop through contents:
-            // Unlink files, recursively remove contents
+        // Recursively call down to the leaf directory
+        for (u64 i = 0; i < entries.directory_count; i++)
+            if (!entries.directories[i].DeleteAll())
+                return false;
 
-        return false;
+        // Delete all files in this directory
+        for (u64 i = 0; i < entries.file_count; i++)
+            if (!entries.files[i].Delete())
+                return false;
+
+        delete[] entries.files;
+        delete[] entries.directories;
+
+        return Delete(path);
     }
 
     bool FSDirectory_LinuxImpl::Exists(const char* path)
@@ -98,19 +111,17 @@ namespace Aurion
         return access(path, F_OK) == 0;
     }
 
-    void FSDirectory_LinuxImpl::List(const char* path, FSCollection* entries, u64& count)
+    FSCollection FSDirectory_LinuxImpl::List(const char* path, bool counts_only)
     {
-        count = 0;
+        FSCollection entries;
+        entries.file_count = 0;
+        entries.directory_count = 0;
 
-        DIR* dir = opendir(path);
-        if (!dir)
-            return;
+        DIR* dir = m_dirp ? m_dirp : opendir(path);
 
         dirent* entry;
 
         // First pass: count files and directories
-        u64 file_count = 0;
-        u64 dir_count = 0;
         while ((entry = readdir(dir)) != nullptr)
         {
             if (entry->d_name[0] == '.')
@@ -121,24 +132,19 @@ namespace Aurion
             }
 
             if (entry->d_type == DT_DIR)
-                dir_count++;
+                entries.directory_count++;
             else if (entry->d_type == DT_REG)
-                file_count++;
-
-            count++;
+                entries.file_count++;
         }
 
-        // Bail if only getting the count
-        if (!entries)
-        {
-            closedir(dir);
-            return;
-        }
+        // Bail early if only the counts were requested
+        if (counts_only) return entries;
 
         // Allocate storage in the collection
-        entries->Allocate(file_count, dir_count);
+        entries.files = new FSFile[entries.file_count];
+        entries.directories = new FSDirectory[entries.directory_count];
 
-        // Second pass: construct entries via placement new
+        // Second pass: construct entries
         rewinddir(dir);
         u64 fi = 0;
         u64 di = 0;
@@ -165,12 +171,17 @@ namespace Aurion
             full_path[full_len - 1] = '\0';
 
             if (entry->d_type == DT_DIR)
-                new (entries->Directories() + di++) FSDirectory(static_cast<const char*>(full_path));
+                entries.directories[di++] = FSDirectory(full_path);
             else if (entry->d_type == DT_REG)
-                new (entries->Files() + fi++) FSFile(static_cast<const char*>(full_path));
+                entries.files[fi++] = FSFile(full_path);
         }
 
-        closedir(dir);
+        // If the directory wasn't opened via Open(),
+        //  close it.
+        if (dir != m_dirp)
+            closedir(dir);
+
+        return entries;
     }
 }
 #endif
