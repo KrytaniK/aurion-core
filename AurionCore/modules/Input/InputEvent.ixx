@@ -66,20 +66,26 @@ export namespace Aurion
 	{
 		InputAxis2DEvent() : InputEvent(AC_INPUT_EVENT_AXIS_2D) {};
 
-		dVec2 value = { 0.0, 0.0 };
+		f64 x = 0.0;
+		f64 y = 0.0;
 	};
 
 	struct AURION_API InputAxis3DEvent : public InputEvent
 	{
 		InputAxis3DEvent() : InputEvent(AC_INPUT_EVENT_AXIS_3D) {};
 
-		dVec3 value = { 0.0, 0.0, 0.0 };
+		f64 x = 0.0;
+		f64 y = 0.0;
+		f64 z = 0.0;
 	};
 
 	struct AURION_API InputAxis4DEvent : public InputEvent
 	{
 		InputAxis4DEvent() : InputEvent(AC_INPUT_EVENT_AXIS_4D) {};
 
-		dVec4 value = { 0.0, 0.0, 0.0, 0.0 };
+		f64 x = 0.0;
+		f64 y = 0.0;
+		f64 z = 0.0;
+		f64 w = 0.0;
 	};
 }
