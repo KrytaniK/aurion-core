@@ -1,14 +1,10 @@
+![Aurion Banner](https://github.com/KrytaniK/aurion-core/blob/cd7c81f5e1795b1f896be65553a9eeeb20a724eb/Assets/Core.png)
+
 <div align="center">
 
 <a href="https://github.com/krytanik/aurion-core/graphs/contributors">![Contributors](https://img.shields.io/github/contributors/krytanik/aurion-core)</a>
 <a href="https://github.com/krytanik/aurion-core/issues">![Issues](https://img.shields.io/github/issues/krytanik/aurion-core)</a>
 <a href="">![License](https://img.shields.io/github/license/krytanik/aurion-core)</a>
-
-<h1>Aurion Core</h1>
-
-<p>
-  A lightweight C++23 application framework designed to facilitate rapid development with minimal STL reliance, featuring custom memory management, modular architecture, and cross-platform window handling.
-</p>
 
 </div>
 
