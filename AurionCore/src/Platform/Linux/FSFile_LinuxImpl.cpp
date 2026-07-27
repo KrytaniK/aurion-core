@@ -51,13 +51,13 @@ namespace Aurion
         return m_metadata;
     }
 
-    void FSFile_LinuxImpl::Open(const char* const FSFileOpenParams& params)
+    void FSFile_LinuxImpl::Open(const char* path, const FSFileOpenParams& params)
     {
         if (m_descriptor.handle != -1)
             return;
 
         // Open the file, opt for owner read/write, others read
-        m_descriptor.handle = open(path, static_cast<int>(flags), static_cast<int>(access));
+        m_descriptor.handle = open(path, static_cast<int>(params.flags), static_cast<int>(params.access));
 
         if (m_descriptor.handle == -1)
             AURION_ERROR("Cannot Open File '%s'", path);
