@@ -22,7 +22,7 @@ namespace Aurion
 
         const u64 str_len = strlen(path) + 1;
         m_path = static_cast<char*>(calloc(str_len, sizeof(char)));
-        strcpy_s(m_path, str_len, path);
+        strncpy(m_path, path, str_len);
     }
 
     FSEntry::~FSEntry()
