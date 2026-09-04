@@ -9,8 +9,14 @@ file(GLOB_RECURSE MACROS CONFIGURE_DEPENDS "macros/*.h")
 file(GLOB_RECURSE MOD CONFIGURE_DEPENDS "modules/*.ixx")
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "src/*.cpp")
 
-# Project is a shared library
+# Conditionally build the project as a shared/static library; Default to shared
 add_library(aurion-core SHARED ${SRC})
+
+set_target_properties(aurion-core PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+)
 
 target_compile_features(aurion-core PUBLIC cxx_std_23)
 
@@ -74,6 +80,8 @@ FetchContent_Declare(
         glfw
         GIT_REPOSITORY https://github.com/glfw/glfw.git
         GIT_TAG 3.4
+        SYSTEM
+        EXCLUDE_FROM_ALL
 )
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
