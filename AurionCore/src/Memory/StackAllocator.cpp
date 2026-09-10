@@ -3,6 +3,7 @@ module;
 #include <cstdlib>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 
 module Aurion.Memory;
 
@@ -37,13 +38,11 @@ namespace Aurion
 
 	StackAllocator::~StackAllocator()
 	{
-	  // We need to figure out the shift amount from the allocation 'header'.
-	  // This shift amount is always at location (p - 1).
+	  /// We need to figure out the shift amount from the allocation 'header'.
+	  // This shift amount is always at location (p - 1) and is guaranteed to be between 1-255.
 	  const u8 shift = m_memory[-1];
-	  const u8 shift_amt = shift == 0 ? 256 : shift == 0;
-
-	  u8* raw_alloc = m_memory - shift_amt;
-		free(raw_alloc);
+	  u8* raw_alloc = m_memory - shift;
+	  free(raw_alloc);
 
 	  m_memory = nullptr;
 	}

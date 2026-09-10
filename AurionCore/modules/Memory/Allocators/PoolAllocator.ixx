@@ -16,7 +16,7 @@ export namespace Aurion
 	  // Enforce a minimum chunk size of 4 bytes, allowing the allocator to track free
 	  //  allocations by index, up to (2^32 - 1) = (4,294,967,295) unique chunks, when
 	  //  the size of a chunk is less than the size of a void*.
-	  constexpr size_t MINIMUM_CHUNK_SIZE = 4u;
+	  static constexpr size_t MINIMUM_CHUNK_SIZE = 4u;
 
 	public:
 		explicit PoolAllocator(const u32& chunk_count, const u32& chunk_size, const u16& alignment);

@@ -17,6 +17,8 @@ namespace Aurion
 	PoolAllocator::PoolAllocator(const u32& chunk_count, const u32& chunk_size, const u16& alignment)
 		: m_memory(nullptr), m_next_free(nullptr)
 	{
+	  assert(chunk_count > 0 && "[Pool Allocator] Invalid chunk count. Chunk count must be greater than 0.");
+
 	  // Enforce a minimum chunk size, based on the provided chunk size.
 	  //  In the worst case, each chunk will contain 3 bytes of empty space (chunk size == 1).
 	  //  This is a non-issue for the majority of use cases, but allows for efficient tracking
@@ -25,10 +27,10 @@ namespace Aurion
 	  m_chunk_size = std::max(static_cast<size_t>(chunk_size), min_chunk_size);
 
 	  if (m_chunk_size > chunk_size)
-	    AURION_WARN("[Pool Allocator] Provided chunk size (%d) is less than the minimum (%d). %d bytes of padding will be applied to each chunk.", chunk_size, min_chunk_size, min_chunk_size - chunk_size);
+	    AURION_WARN("[Pool Allocator] Provided chunk size (%d) is less than the minimum (%zu). %zu bytes of padding will be applied to each chunk.", chunk_size, min_chunk_size, min_chunk_size - chunk_size);
 
-	  // Ensure the capacity is always a multiple of the chunk size.
-	  m_capacity = chunk_count * m_chunk_size;
+	  // Ensure the capacity is always a multiple of the chunk size, and has room to be aligned.
+	  m_capacity = chunk_count * m_chunk_size + alignment;
 
 	  // Allocate the initial memory block
 	  MemoryBlock raw_alloc = static_cast<MemoryBlock>(calloc(m_capacity, sizeof(u8)));
@@ -56,17 +58,15 @@ namespace Aurion
 	    *reinterpret_cast<u32*>(&m_memory[i * m_chunk_size]) = (i + 1) * m_chunk_size;
 
 	  // The last chunk should point to an invalid index
-	  *reinterpret_cast<u32*>(&m_memory[m_capacity - m_chunk_size]) = UINT32_MAX;
+	  *reinterpret_cast<u32*>(&m_memory[m_capacity - alignment - m_chunk_size]) = UINT32_MAX;
 	}
 
 	PoolAllocator::~PoolAllocator()
 	{
 	  // We need to figure out the shift amount from the allocation 'header'.
-	  // This shift amount is always at location (p - 1).
+	  // This shift amount is always at location (p - 1) and is guaranteed to be between 1-255.
 	  const u8 shift = m_memory[-1];
-	  const u8 shift_amt = shift == 0 ? 256 : shift == 0;
-
-	  u8* raw_alloc = m_memory - shift_amt;
+	  u8* raw_alloc = m_memory - shift;
 	  free(raw_alloc);
 
 	  m_memory = nullptr;
@@ -115,7 +115,13 @@ namespace Aurion
 	  // Calculate the offset of the next free chunk, and
 	  //  write this offset into the provided allocation. When
 	  //  the allocator is full, write an invalid index.
-	  *static_cast<u32*>(alloc) = (m_next_free == nullptr) ? UINT32_MAX : *static_cast<u32*>(m_next_free);
+	  if (m_next_free == nullptr)
+	    *static_cast<u32*>(alloc) = UINT32_MAX;
+	  else
+	  {
+	    ptrdiff_t next_diff = static_cast<MemoryBlock>(m_next_free) - m_memory;
+	    *static_cast<u32*>(alloc) = static_cast<u32>(next_diff);
+	  }
 
 	  // Then, pre-pend this allocation to the front of the next-free list
 	  m_next_free = alloc;
@@ -124,16 +130,20 @@ namespace Aurion
 	void PoolAllocator::Reset()
 	{
 	  // Determine chunk count
-	  const u32 chunk_count = m_capacity % m_chunk_size;
+	  const u32 alignment = m_capacity % m_chunk_size;
+	  const u32 chunk_count = m_capacity / m_chunk_size;
 
-	  // null entire allocation
-	  std::memset(m_memory, 0, m_capacity);
+	  // null entire allocation, saving the shift of the initial memory block.
+	  std::memset(m_memory, 0, m_capacity - alignment);
 
 	  // At each chunk address, store the offset of the next free allocation block
 	  for (u32 i = 0; i < chunk_count - 1; i++)
 	    *reinterpret_cast<u32*>(&m_memory[i * m_chunk_size]) = (i + 1) * m_chunk_size;
 
 	  // The last chunk should point to an invalid index
-	  *reinterpret_cast<u32*>(&m_memory[m_capacity - m_chunk_size]) = UINT32_MAX;
+	  *reinterpret_cast<u32*>(&m_memory[m_capacity - alignment - m_chunk_size]) = UINT32_MAX;
+
+	  // restore next-free pointer
+	  m_next_free = m_memory;
 	}
 }
