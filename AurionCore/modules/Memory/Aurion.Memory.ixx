@@ -1,7 +1,9 @@
 export module Aurion.Memory;
 
+export import :Utility;
+export import :Interface;
+
 // Allocators
-export import :Allocator;
 export import :LinearAllocator;
 export import :StackAllocator;
 export import :PoolAllocator;

@@ -5,33 +5,39 @@ module;
 
 export module Aurion.Memory:StackAllocator;
 
-import :Allocator;
+import Aurion.Types;
+
+import :Interface;
 
 export namespace Aurion
 {
 	class AURION_API StackAllocator : public IMemoryAllocator
 	{
 	public:
-		StackAllocator(); // Always default constructable
-		virtual ~StackAllocator() override;
+		explicit StackAllocator(const u32& capacity, const u16& alignment); // Always default constructable
+	  ~StackAllocator() override;
 
-		// Still allow move operations
-		StackAllocator(StackAllocator&& other);
-		StackAllocator& operator=(StackAllocator&& other);
+	  // No copies
+	  StackAllocator(const StackAllocator&) = delete;
+	  StackAllocator& operator=(const StackAllocator&) = delete;
 
-		virtual void Initialize(const size_t& chunk_size, const size_t& chunk_count = 1) override;
+	  // No moves
+	  StackAllocator(StackAllocator&&) = delete;
+	  StackAllocator& operator=(StackAllocator&&) = delete;
 
-		virtual void* Allocate(const size_t& size, const size_t& alignment = 16) override;
+		[[nodiscard]] MemoryAllocation Allocate(const u32& size, const u16& alignment) override;
 
-		virtual void Free(void* ptr = nullptr) override; // LIFO deallocation
+		void Free(MemoryAllocation alloc) override;
 
-		virtual void Reset() override; // Reset state
+		void Reset() override; // Reset state
 
-		virtual bool IsMapped(void* ptr) override;
+	  [[nodiscard]] MemoryAllocationMarker GetMarker() const;
+
+	  void FreeToMarker(const MemoryAllocationMarker& marker);
 
 	private:
-		void* m_start;
-		size_t m_offset;
-		size_t m_max_offset;
+	  MemoryBlock m_memory;
+	  u32 m_capacity;
+	  u32 m_offset;
 	};
 }

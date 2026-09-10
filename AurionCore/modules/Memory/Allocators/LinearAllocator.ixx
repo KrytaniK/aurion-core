@@ -1,37 +1,38 @@
 module;
 
 #include <AurionExport.h>
-#include <cstddef>
 
 export module Aurion.Memory:LinearAllocator;
 
-import :Allocator;
+import Aurion.Types;
+
+import :Interface;
 
 export namespace Aurion
 {
 	class AURION_API LinearAllocator : public IMemoryAllocator
 	{
 	public:
-		LinearAllocator(); // Always default constructable
-		virtual ~LinearAllocator() override;
+		explicit LinearAllocator(const u32& capacity, const u16& alignment);
+	  ~LinearAllocator() override;
 
-		// Still allow move operations
-		LinearAllocator(LinearAllocator&& other);
-		LinearAllocator& operator=(LinearAllocator&& other);
+	  // No copies
+	  LinearAllocator(const LinearAllocator&) = delete;
+	  LinearAllocator& operator=(const LinearAllocator&) = delete;
 
-		virtual void Initialize(const size_t& chunk_size, const size_t& chunk_count = 1) override;
+	  // No moves
+	  LinearAllocator(LinearAllocator&&) = delete;
+	  LinearAllocator& operator=(LinearAllocator&&) = delete;
 
-		virtual void* Allocate(const size_t& size, const size_t& alignment = 16) override;
+    [[nodiscard]] MemoryAllocation Allocate(const u32& size, const u16& alignment) override;
 
-		virtual void Free(void* ptr = nullptr) override; // Empty
+    void Free(MemoryAllocation alloc) override;
 
-		virtual void Reset() override; // Reset state
+    void Reset() override;
 
-		virtual bool IsMapped(void* ptr) override;
-
-	private:
-		void* m_start;
-		size_t m_offset;
-		size_t m_max_offset;
+  private:
+	  MemoryBlock m_memory;
+	  u32 m_capacity;
+	  u32 m_offset;
 	};
 }

@@ -3,163 +3,137 @@ module;
 #include <AurionLog.h>
 #include <cstdlib>
 #include <cstdint>
-#include <iostream>
+#include <cassert>
+#include <cstddef>
+#include <algorithm>
+#include <cstring>
 
 module Aurion.Memory;
 
+import Aurion.Types;
+
 namespace Aurion
 {
-	PoolAllocator::PoolAllocator()
-		: m_start(nullptr), m_free_list(nullptr), m_chunk_count(0), m_chunk_size(0)
+	PoolAllocator::PoolAllocator(const u32& chunk_count, const u32& chunk_size, const u16& alignment)
+		: m_memory(nullptr), m_next_free(nullptr)
 	{
-		
+	  // Enforce a minimum chunk size, based on the provided chunk size.
+	  //  In the worst case, each chunk will contain 3 bytes of empty space (chunk size == 1).
+	  //  This is a non-issue for the majority of use cases, but allows for efficient tracking
+	  //  of freed allocations.
+	  size_t min_chunk_size = std::min(MINIMUM_CHUNK_SIZE, sizeof(void*));
+	  m_chunk_size = std::max(static_cast<size_t>(chunk_size), min_chunk_size);
+
+	  if (m_chunk_size > chunk_size)
+	    AURION_WARN("[Pool Allocator] Provided chunk size (%d) is less than the minimum (%d). %d bytes of padding will be applied to each chunk.", chunk_size, min_chunk_size, min_chunk_size - chunk_size);
+
+	  // Ensure the capacity is always a multiple of the chunk size.
+	  m_capacity = chunk_count * m_chunk_size;
+
+	  // Allocate the initial memory block
+	  MemoryBlock raw_alloc = static_cast<MemoryBlock>(calloc(m_capacity, sizeof(u8)));
+
+	  // Align the memory address to the desired alignment
+	  uintptr_t alloc_addr = reinterpret_cast<uintptr_t>(raw_alloc);
+	  uintptr_t aligned_alloc = AlignAddress(alloc_addr, alignment);
+	  m_memory = reinterpret_cast<MemoryBlock>(aligned_alloc);
+
+	  // If the aligned allocation is in the same location,
+	  //  shift to the next alignment boundary.
+	  if (m_memory == raw_alloc)
+	    m_memory += alignment;
+
+	  // Then, determine how much the memory shifted
+	  ptrdiff_t shift = m_memory - raw_alloc;
+	  assert((shift > 0 && shift < 256) && "[Pool Allocator] Invalid memory alignment.");
+
+	  // And store the shift amount between the raw allocation and the aligned allocation
+	  m_memory[-1] = static_cast<u8>(shift & 0xFF);
+	  m_next_free = m_memory;
+
+	  // At each chunk address, store the offset of the next free allocation block
+	  for (u32 i = 0; i < chunk_count - 1; i++)
+	    *reinterpret_cast<u32*>(&m_memory[i * m_chunk_size]) = (i + 1) * m_chunk_size;
+
+	  // The last chunk should point to an invalid index
+	  *reinterpret_cast<u32*>(&m_memory[m_capacity - m_chunk_size]) = UINT32_MAX;
 	}
 
 	PoolAllocator::~PoolAllocator()
 	{
-		free(m_start);
-		m_start = nullptr;
+	  // We need to figure out the shift amount from the allocation 'header'.
+	  // This shift amount is always at location (p - 1).
+	  const u8 shift = m_memory[-1];
+	  const u8 shift_amt = shift == 0 ? 256 : shift == 0;
+
+	  u8* raw_alloc = m_memory - shift_amt;
+	  free(raw_alloc);
+
+	  m_memory = nullptr;
 	}
 
-	PoolAllocator::PoolAllocator(PoolAllocator&& other)
+  MemoryAllocation PoolAllocator::Allocate()
+  {
+	  return Allocate(m_chunk_size, 0); // size/alignment are ignored.
+  }
+
+	MemoryAllocation PoolAllocator::Allocate(const u32& size, const u16& alignment)
 	{
-		m_start = other.m_start;
-		m_free_list = other.m_free_list;
-		m_chunk_count = other.m_chunk_count;
-		m_chunk_size = other.m_chunk_size;
+	  // NOTE: Size and alignment are ignored.
+
+	  if (m_next_free == nullptr)
+	  {
+	    AURION_ERROR("[Pool Allocator] Failed to allocate memory: Out of memory.");
+	    return nullptr;
+	  }
+
+	  // Pull the address of the next free block of memory
+	  MemoryAllocation allocation = m_next_free;
+
+	  // The offset of the next available free memory block is stored
+	  //  inside the 'empty' allocation. Read and forward the next-free
+	  //  list to this location. This offset value is guaranteed to be 4 bytes.
+	  u32 next_offset = *static_cast<u32*>(allocation);
+	  m_next_free = (next_offset == UINT32_MAX) ? nullptr : m_memory + next_offset;
+
+	  return allocation;
 	}
 
-	PoolAllocator& PoolAllocator::operator=(PoolAllocator&& other)
+	void PoolAllocator::Free(MemoryAllocation alloc)
 	{
-		m_start = other.m_start;
-		m_free_list = other.m_free_list;
-		m_chunk_count = other.m_chunk_count;
-		m_chunk_size = other.m_chunk_size;
+	  // Bounds check to ensure this allocation came from this allocator
+	  ptrdiff_t diff = static_cast<MemoryBlock>(alloc) - m_memory;
+	  if (diff < 0 || (diff + m_chunk_size) > m_capacity)
+	  {
+	    AURION_ERROR("[Pool Allocator] Failed to free allocation: Out of bounds.");
+	    return;
+	  }
 
-		return *this;
-	}
+	  // For safety, null the entire allocation
+	  std::memset(alloc, 0, m_chunk_size);
 
-	void PoolAllocator::Initialize(const size_t& chunk_size, const size_t& chunk_count)
-	{
-		// Enforce 8 byte minimum (for pointer storage)
-		if (chunk_size < 8 || chunk_count == 0)
-			return;
+	  // Calculate the offset of the next free chunk, and
+	  //  write this offset into the provided allocation. When
+	  //  the allocator is full, write an invalid index.
+	  *static_cast<u32*>(alloc) = (m_next_free == nullptr) ? UINT32_MAX : *static_cast<u32*>(m_next_free);
 
-		// Set internal chunk data
-		m_chunk_count = chunk_count;
-		m_chunk_size = chunk_size;
-
-		// Use calloc to grab memory and initialize it to 0
-		m_start = calloc(chunk_count, chunk_size);
-
-		// The free list begins at the start of the allocated memory
-		m_free_list = (void**)(m_start);
-
-		// Use the first 8 bytes of each uninitialized chunk to store a pointer to the next uninitialized
-		//	chunk.
-		// A multiplier is required here for indexing, since for loops iterate by the size of the type of container (void*), not
-		//	the size of the chunk, and we want to write to the beginning of each chunk.
-		size_t multiplier = (m_chunk_size / sizeof(void*));
-		for (size_t i = 0; i < m_chunk_count; i++)
-			m_free_list[i * multiplier] = (void*)((size_t)m_start + (i + 1) * m_chunk_size);
-
-		// Ensure the last block points to nothing.
-		m_free_list[(m_chunk_count - 1) * multiplier] = nullptr;
-	}
-
-	void* PoolAllocator::Allocate(const size_t& size, const size_t& alignment)
-	{
-		if (!m_start || !m_free_list)
-			return nullptr;
-
-		// Size and alignment are ignored. Pool operates in fixed chunks
-		return Allocate();
-	}
-
-	void* PoolAllocator::Allocate()
-	{
-		if (!m_start || !m_free_list)
-		{
-			AURION_ERROR("[Pool Allocator] Error: Failed to allocate space for resource. Reason: Out of memory");
-			return nullptr;
-		}
-
-		void* allocation = m_free_list;
-
-		m_free_list = (void**)(*m_free_list);
-
-		// return the allocated memory
-		return allocation;
-	}
-
-	void PoolAllocator::Free(void* ptr)
-	{
-		// Ensure the allocator has been initialized
-		if (!m_start)
-			return;
-
-		// Bounds Check
-		if ((size_t)ptr < (size_t)m_start || (size_t)ptr >= ((size_t)m_start + (m_chunk_count * m_chunk_size)))
-			return;
-
-		// Store the current free list in this chunk
-		*((void**)ptr) = m_free_list;
-
-		// Update the free list to point to the freed chunk
-		m_free_list = (void**)ptr;
+	  // Then, pre-pend this allocation to the front of the next-free list
+	  m_next_free = alloc;
 	}
 
 	void PoolAllocator::Reset()
 	{
-		// Ensure the allocator has been initialized
-		if (!m_start)
-			return;
+	  // Determine chunk count
+	  const u32 chunk_count = m_capacity % m_chunk_size;
 
-		// Note: If ANY object data still remains in the allocated memory region,
-		//	then this function will overwrite the first 8 bytes of that data.
+	  // null entire allocation
+	  std::memset(m_memory, 0, m_capacity);
 
-		// Return all memory back to the free list (no reallocations)
-		m_free_list = (void**)(m_start);
+	  // At each chunk address, store the offset of the next free allocation block
+	  for (u32 i = 0; i < chunk_count - 1; i++)
+	    *reinterpret_cast<u32*>(&m_memory[i * m_chunk_size]) = (i + 1) * m_chunk_size;
 
-		// Use the first 8 bytes of each unused chunk to store pointers to
-		//	the next unused chunk
-		size_t multiplier = (m_chunk_size / sizeof(void*));
-		for (size_t i = 0; i < m_chunk_count; i++)
-			m_free_list[i * multiplier] = (void*)((size_t)m_start + (i + 1) * m_chunk_size);
-
-		// Ensure the last block points to nothing.
-		m_free_list[(m_chunk_count - 1) * multiplier] = nullptr;
-	}
-
-	bool PoolAllocator::IsMapped(void* ptr)
-	{
-		// Ensure the allocator has been initialized
-		if (!m_start)
-		{
-			AURION_ERROR("Pool Allocator not initialized!");
-			return false;
-		}
-
-		// Ensure the pointer is within the bounds of the allocated memory
-		if ((size_t)ptr < (size_t)m_start || (size_t)ptr >= ((size_t)m_start + (m_chunk_count * m_chunk_size)))
-		{
-			AURION_ERROR("Attempted to access out of bounds memory!");
-			return false;
-		}
-
-		// Copy and iterate through the free list. If the pointer doesn't exist in the free list,
-		//	then that memory is mapped.
-		void** current = m_free_list;
-		while (current)
-		{
-			// If the pointer address matches, then the memory is not mapped
-			if ((size_t)current == (size_t)ptr)
-				return false;
-
-			// Otherwise, continue iteration
-			current = (void**)(*current);
-		}
-
-		return true;
+	  // The last chunk should point to an invalid index
+	  *reinterpret_cast<u32*>(&m_memory[m_capacity - m_chunk_size]) = UINT32_MAX;
 	}
 }
