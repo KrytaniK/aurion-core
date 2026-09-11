@@ -92,7 +92,7 @@ namespace Aurion
 
     bool FSDirectory_WindowsImpl::DeleteAll(const char* path)
     {
-        FSCollection entries = List(path);
+        FSCollection entries = List(path, false);
 
         // Recursively call down to the leaf directory
         for (u64 i = 0; i < entries.directory_count; i++)

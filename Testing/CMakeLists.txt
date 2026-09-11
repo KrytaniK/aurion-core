@@ -23,7 +23,7 @@ file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS "*.cpp")
 # Add test project and link library and testing framework
 add_executable(unit_tests ${TEST_SOURCES})
 target_link_libraries(unit_tests
-    PRIVATE aurion-core-shared GTest::gtest_main
+    PRIVATE aurion-core-static GTest::gtest_main
 )
 
 # Set to auto-discover Testing cases
