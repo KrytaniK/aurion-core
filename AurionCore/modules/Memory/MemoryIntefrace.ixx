@@ -26,15 +26,4 @@ export namespace Aurion
     // Resets the entire memory allocation to its default state (null)
     virtual void Reset() = 0;
   };
-
-  struct AURION_API IMemoryContainer
-  {
-    virtual ~IMemoryContainer() = default;
-
-    [[nodiscard]] virtual size_t Size() = 0;
-    [[nodiscard]] virtual size_t Capacity() = 0;
-    [[nodiscard]] virtual bool IsEmpty() = 0;
-
-    [[nodiscard]] virtual MemoryAllocation Data() = 0;
-  };
 }

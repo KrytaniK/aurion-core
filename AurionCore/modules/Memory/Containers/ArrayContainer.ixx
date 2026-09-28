@@ -8,12 +8,10 @@ export module Aurion.Memory:Array;
 
 import Aurion.Types;
 
-import :LinearAllocator;
-
 export namespace Aurion
 {
   template<typename T, size_t N>
-  class AURION_API Array : public IMemoryContainer
+  class AURION_API Array
   {
     static_assert(std::is_trivially_constructible_v<T>, "Array type must be trivially constructible!");
 
@@ -23,15 +21,15 @@ export namespace Aurion
     using Pointer = Type*;
 
   public:
-    T m_start[N];
+    T data[N];
 
-    ~Array() override = default;
+    ~Array() = default;
 
-    [[nodiscard]] size_t Size() override;
-    [[nodiscard]] size_t Capacity() override;
-    [[nodiscard]] bool IsEmpty() override;
+    [[nodiscard]] size_t Size();
+    [[nodiscard]] size_t Capacity();
+    [[nodiscard]] bool IsEmpty();
 
-    [[nodiscard]] MemoryAllocation Data() override;
+    [[nodiscard]] Pointer Data();
 
     [[nodiscard]] Reference At(const size_t& index);
     [[nodiscard]] Reference Front();
@@ -48,27 +46,27 @@ export namespace Aurion
   size_t Array<T, N>::Capacity() { return N; }
 
   template<typename T, size_t N>
-  bool Array<T, N>::IsEmpty() { return m_start == nullptr; }
+  bool Array<T, N>::IsEmpty() { return data == nullptr; }
 
   template<typename T, size_t N>
-  MemoryAllocation Array<T, N>::Data() { return m_start; }
+  Array<T, N>::Pointer Array<T, N>::Data() { return data; }
 
   template<typename T, size_t N>
   typename Array<T, N>::Reference Array<T, N>::At(const size_t &index)
   {
     assert(index < N && "Index Out of Bounds!");
-    return m_start[index];
+    return data[index];
   }
 
   template<typename T, size_t N>
-  typename Array<T, N>::Reference Array<T, N>::Front() { return m_start[0]; }
+  typename Array<T, N>::Reference Array<T, N>::Front() { return data[0]; }
 
   template<typename T, size_t N>
-  typename Array<T, N>::Reference Array<T, N>::Back() { return m_start[N - 1]; }
+  typename Array<T, N>::Reference Array<T, N>::Back() { return data[N - 1]; }
 
   template<typename T, size_t N>
-  typename Array<T, N>::Reference Array<T, N>::operator[](size_t index) { return m_start[index]; }
+  typename Array<T, N>::Reference Array<T, N>::operator[](size_t index) { return data[index]; }
 
   template<typename T, size_t N>
-  const typename Array<T, N>::Reference Array<T, N>::operator[](size_t index) const { return m_start[index]; }
+  const typename Array<T, N>::Reference Array<T, N>::operator[](size_t index) const { return data[index]; }
 }
