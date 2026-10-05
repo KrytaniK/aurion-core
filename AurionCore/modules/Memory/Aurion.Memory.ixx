@@ -10,6 +10,6 @@ export import :PoolAllocator;
 
 // Containers
 export import :Array;
-// export import :Vector;
+export import :Vector;
 // export import :LinkedList;// export import :Vector;
 //// export import :LinkedList;

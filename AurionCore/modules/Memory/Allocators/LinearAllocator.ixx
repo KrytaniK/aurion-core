@@ -10,19 +10,20 @@ import :Interface;
 
 export namespace Aurion
 {
-	class AURION_API LinearAllocator : public IMemoryAllocator
-	{
-	public:
-		explicit LinearAllocator(const u32& capacity, const u16& alignment);
-	  ~LinearAllocator() override;
+  class AURION_API LinearAllocator : public IMemoryAllocator
+  {
+  public:
+    LinearAllocator();
+    explicit LinearAllocator(const u32& capacity, const u16& alignment);
+    ~LinearAllocator() override;
 
-	  // No copies
-	  LinearAllocator(const LinearAllocator&) = delete;
-	  LinearAllocator& operator=(const LinearAllocator&) = delete;
+    // No copies
+    LinearAllocator(const LinearAllocator&) = delete;
+    LinearAllocator& operator=(const LinearAllocator&) = delete;
 
-	  // No moves
-	  LinearAllocator(LinearAllocator&&) = delete;
-	  LinearAllocator& operator=(LinearAllocator&&) = delete;
+    // No moves
+    LinearAllocator(LinearAllocator&&) = delete;
+    LinearAllocator& operator=(LinearAllocator&&) = delete;
 
     [[nodiscard]] MemoryAllocation Allocate(const u32& size, const u16& alignment) override;
 
@@ -31,8 +32,8 @@ export namespace Aurion
     void Reset() override;
 
   private:
-	  MemoryBlock m_memory;
-	  u32 m_capacity;
-	  u32 m_offset;
-	};
+    MemoryBlock m_memory;
+    u32 m_capacity;
+    u32 m_offset;
+  };
 }
