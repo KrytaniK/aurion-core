@@ -173,6 +173,21 @@ TEST(DynamicArrayTest, Emplace)
     EXPECT_EQ(test[4], 7);
 }
 
+TEST(DynamicArrayTest, Clear)
+{
+    Vector<u8> test;
+
+    test.Push(10);
+    test.Push(10);
+    test.Push(10);
+
+    EXPECT_FALSE(test.IsEmpty());
+
+    test.Clear();
+
+    EXPECT_TRUE(test.IsEmpty());
+}
+
 TEST(DynamicArrayDeathTest, OutOfBoundsAccess)
 {
     Vector<u8> test;

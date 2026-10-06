@@ -52,6 +52,8 @@ export namespace Aurion
 
     void PopBack();
 
+    void Clear();
+
     T& operator[](size_t index);
     const T& operator[](size_t index) const;
 
@@ -326,9 +328,18 @@ export namespace Aurion
   {
     if (m_size == 0) return;
 
-    // Call destructor on last element, and null its data
+    // Call destructor on last element
     m_data[--m_size].~T();
-    memset(m_data + m_size, 0, sizeof(T));
+  }
+
+  template <typename T>
+  void Vector<T>::Clear()
+  {
+    // Destroy all elements in 'reverse' order
+    for (size_t i = 0; i < m_size; i++)
+      m_data[m_size - 1 - i].~T();
+
+    m_size = 0;
   }
 
   template <typename T>
