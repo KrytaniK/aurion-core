@@ -1,5 +1,8 @@
 module;
 
+#include <cstdint>
+#include <cassert>
+#include <cstdlib>
 
 export module Aurion.Memory:SlotMap;
 
@@ -15,19 +18,18 @@ export namespace Aurion
   public:
     union Key {
       u64 value;
-      struct { u32 index; u32 generation; };
+      struct { u32 index = 0; u32 generation = 0; };
     };
-
 
   public:
     SlotMap();
     ~SlotMap() = default;
 
-    Key Insert(T& value);
+    Key Insert(const T& value);
     Key Insert(T&& value);
 
     template<typename... Args>
-    Key Emplace(Args&& args);
+    Key Emplace(Args&&... args);
 
     bool Erase(Key key);
 
@@ -49,68 +51,156 @@ export namespace Aurion
 
   template<typename T>
   SlotMap<T>::SlotMap()
-    : m_free_head(0)
-  {
-    for (size_t i = 0; i < m_slots.Size(); i++)
-    {
-      m_slots[i] = { .index = i, .generation = 0 };
-      m_erase[i] = i;
-    }
-  }
+    : m_free_head(UINT32_MAX)
+  {  }
 
   template<typename T>
-  typename SlotMap<T>::Key SlotMap<T>::Insert(T& value)
+  typename SlotMap<T>::Key SlotMap<T>::Insert(const T& value)
   {
-
-
+    // Construct in-place via copy-constructor
+    return this->Emplace(value);
   }
 
   template<typename T>
   typename SlotMap<T>::Key SlotMap<T>::Insert(T&& value)
   {
-
+    // Construct in-place via move-constructor
+    return this->Emplace(static_cast<T&&>(value));
   }
 
   template<typename T>
-  template<typename ... Args>
-  typename SlotMap<T>::Key SlotMap<T>::Emplace(Args &&args)
+  template<typename... Args>
+  typename SlotMap<T>::Key SlotMap<T>::Emplace(Args&&... args)
   {
+    // If there are no more disjoint free slots, let vector logic
+    //  amortize growth
+    if (m_free_head == UINT32_MAX)
+    {
+      u32 insert_idx = m_slots.Size();
 
+      // Vectors will auto-resize when they are full
+      m_slots.PushBack({ .index = insert_idx, .generation = 1 });
+      m_data.EmplaceBack(static_cast<Args&&>(args)...);
+      m_erase.PushBack(insert_idx);
+
+      // Return a key, containing the index into the slot map
+      return { .index = insert_idx, .generation = 1 };
+    }
+
+    // Get the next-available free slot
+    u32 slot_idx = m_free_head;
+    Key& slot = m_slots.At(slot_idx);
+
+    // Copy the data item to the data vector
+    m_data.EmplaceBack(static_cast<Args&&>(args)...);
+
+    // And add a corresponding erase id to point back to this slot
+    m_erase.PushBack(slot_idx);
+
+    // Then update the free-list head
+    m_free_head = slot.index;
+
+    // And update the slot index and increment generation counter
+    slot.index = m_data.Size() - 1;
+    ++slot.generation;
+
+    return { .index = slot_idx, .generation = slot.generation };
   }
 
   template<typename T>
   bool SlotMap<T>::Erase(Key key)
   {
+    // Bounds check
+    if (key.index >= m_slots.Size())
+      return false;
 
+    // Ensure matching generations
+    Key& slot = m_slots[key.index];
+    if (slot.generation != key.generation)
+      return false;
+
+    // Only trigger a move when the element to
+    //  erase is not the last element
+    if (slot.index != m_data.Size() - 1)
+    {
+      u32 erase_idx = slot.index;
+
+      // Move the last element into this slot, and update the
+      //  erase pointer for the last element
+      m_data[erase_idx] = static_cast<T&&>(m_data.Back());
+      m_erase[erase_idx] = m_erase.Back();
+
+      // Then, update the slot index for the moved element,
+      m_slots[m_erase[erase_idx]].index = erase_idx;
+    }
+
+    // Forward the erased slot pointer to an empty state,
+    slot.index = m_free_head;
+    ++slot.generation;
+
+    // Pop the now stale data/erase elements
+    m_data.PopBack();
+    m_erase.PopBack();
+
+    // And set the free-list to point to the erased slot pointer
+    m_free_head = key.index;
+
+    return true;
   }
 
   template<typename T>
   void SlotMap<T>::Clear()
   {
+    // Forward all live slots to an 'empty' state
+    for (size_t i = 0; i < m_erase.Size(); i++)
+      ++m_slots[m_erase[i]].generation;
 
+    // Then, clear all element data and erase pointers
+    m_data.Clear();
+    m_erase.Clear();
+
+    if (m_slots.IsEmpty()) return;
+
+    // If there were existing slots, reset the free-list head
+    m_free_head = 0;
+
+    // Then, reset the indices for all current slots
+    for (size_t i = 0; i < m_slots.Size() - 1; i++)
+      m_slots[i].index = i + 1;
+
+    // And force the last slot to point to an invalid slot
+    m_slots[m_slots.Size() - 1].index = UINT32_MAX;
   }
 
   template<typename T>
-  T & SlotMap<T>::At(Key key)
+  T& SlotMap<T>::At(Key key)
   {
+    Key& slot = m_slots.At(key.index);
+    assert(slot.generation == key.generation && "[SlotMap] Invalid Key");
 
+    return m_data.At(slot.index);
   }
 
   template<typename T>
-  const T & SlotMap<T>::At(Key key) const
+  const T& SlotMap<T>::At(Key key) const
   {
+    const Key& slot = m_slots.At(key.index);
+    assert(slot.generation == key.generation && "[SlotMap] Invalid Key");
 
+    return m_data.At(slot.index);
   }
 
   template<typename T>
-  T & SlotMap<T>::operator[](Key key)
+  T& SlotMap<T>::operator[](Key key)
   {
-
+    Key& slot = m_slots.At(key.index);
+    return m_data[slot.index];
   }
 
   template<typename T>
-  const T & SlotMap<T>::operator[](Key key) const
+  const T& SlotMap<T>::operator[](Key key) const
   {
-
+    const Key& slot = m_slots.At(key.index);
+    return m_data[slot.index];
   }
 }

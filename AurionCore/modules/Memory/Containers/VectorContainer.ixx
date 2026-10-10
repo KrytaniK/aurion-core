@@ -3,8 +3,9 @@ module;
 #include <AurionExport.h>
 #include <cassert>
 #include <cstring>
-#include <concepts>
+#include <type_traits>
 #include <cstdlib>
+#include <algorithm>
 
 export module Aurion.Memory:Vector;
 
@@ -25,21 +26,26 @@ export namespace Aurion
 
     ~Vector();
 
-    [[nodiscard]] size_t Size();
-    [[nodiscard]] size_t Capacity();
-    [[nodiscard]] bool IsEmpty();
-    [[nodiscard]] bool IsFull();
+    // Copying would leave two vectors owning the same buffer
+    Vector(const Vector&) = delete;
+    Vector& operator=(const Vector&) = delete;
+
+    [[nodiscard]] size_t Size() const;
+    [[nodiscard]] size_t Capacity() const;
+    [[nodiscard]] bool IsEmpty() const;
+    [[nodiscard]] bool IsFull() const;
 
     [[nodiscard]] T* Data();
 
     [[nodiscard]] T& At(const size_t& index);
+    [[nodiscard]] const T& At(const size_t& index) const;
     [[nodiscard]] T& Front();
     [[nodiscard]] T& Back();
 
     T& Push(T& value);
     T& Push(T&& value);
 
-    T& PushBack(T& value);
+    T& PushBack(const T& value);
     T& PushBack(T&& value);
 
     template <typename... Args>
@@ -58,7 +64,18 @@ export namespace Aurion
     const T& operator[](size_t index) const;
 
   private:
-    T* Resize();
+    // Allocates a buffer of twice the capacity. 'owner' receives the allocator
+    //  the buffer came from, or nullptr if it came from the heap
+    T* Resize(IMemoryAllocator*& owner);
+
+    // Releases the current buffer with whatever owned it, then takes
+    //  ownership of the new allocation, which may come from the Vector's
+    //  own internal allocator, or heap memory with calloc().
+    void Adopt(T* alloc, IMemoryAllocator* owner);
+
+    // Moves 'count' elements from src into raw memory at dst, leaving src as
+    //  raw memory. Ranges may overlap.
+    void Relocate(T* dst, T* src, size_t count);
 
   private:
     IMemoryAllocator* m_allocator;
@@ -69,18 +86,28 @@ export namespace Aurion
 
   template <typename T>
   Vector<T>::Vector(size_t capacity, IMemoryAllocator* allocator)
-    : m_allocator(allocator), m_data(nullptr), m_size(0), m_capacity(capacity)
+    : m_allocator(allocator), m_data(nullptr), m_size(0), m_capacity(std::max(capacity, k_vector_min_capacity))
   {
-    if (allocator != nullptr)
-      m_data = static_cast<T*>(allocator->Allocate(sizeof(T) * m_capacity, alignof(T)));
-    else
+    if (m_allocator != nullptr)
+      m_data = static_cast<T*>(m_allocator->Allocate(sizeof(T) * m_capacity, alignof(T)));
+
+    // If the allocator didn't contain a large-enough block, or wasn't available,
+    //  fallback to heap allocation
+    if (m_data == nullptr)
+    {
       m_data = static_cast<T*>(calloc(m_capacity, sizeof(T)));
+      m_allocator = nullptr;
+    }
   }
 
   template <typename T>
   Vector<T>::~Vector()
   {
     if (m_data == nullptr) return;
+
+    // Destroy all live elements
+    for (size_t i = 0; i < m_size; ++i)
+      m_data[i].~T();
 
     if (m_allocator)
       m_allocator->Free(m_data);
@@ -89,25 +116,25 @@ export namespace Aurion
   }
 
   template <typename T>
-  size_t Vector<T>::Size()
+  size_t Vector<T>::Size() const
   {
     return m_size;
   }
 
   template <typename T>
-  size_t Vector<T>::Capacity()
+  size_t Vector<T>::Capacity() const
   {
     return m_capacity;
   }
 
   template <typename T>
-  bool Vector<T>::IsEmpty()
+  bool Vector<T>::IsEmpty() const
   {
     return m_size == 0;
   }
 
   template <typename T>
-  bool Vector<T>::IsFull()
+  bool Vector<T>::IsFull() const
   {
     return m_size == m_capacity;
   }
@@ -121,7 +148,14 @@ export namespace Aurion
   template <typename T>
   T& Vector<T>::At(const size_t& index)
   {
-    assert(index < m_capacity && "Index Out of Bounds!");
+    assert(index < m_size && "Index Out of Bounds!");
+    return m_data[index];
+  }
+
+  template <typename T>
+  const T& Vector<T>::At(const size_t& index) const
+  {
+    assert(index < m_size && "Index Out of Bounds!");
     return m_data[index];
   }
 
@@ -142,27 +176,32 @@ export namespace Aurion
   {
     if (IsFull()) // Resize if full
     {
-      T* alloc = Resize();
+      IMemoryAllocator* owner = nullptr;
+      T* alloc = Resize(owner);
+
+      // Copy the object into the new memory first, since 'value'
+      //  may refer to an element of this vector
+      new (alloc) T(value);
 
       // Then move all data to new memory to the adjusted position
-      for (size_t i = 0; i < m_capacity; i++)
-        alloc[i + 1] = static_cast<T&&>(m_data[i]);
+      Relocate(alloc + 1, m_data, m_size);
 
-      // Free the initial data
-      if (m_allocator) m_allocator->Free(m_data);
-      else delete[] m_data;
-
-      // Then update to new allocation
-      m_data = alloc;
+      // Free the initial data and update to the new allocation
+      Adopt(alloc, owner);
     }
-    else // Shift all elements otherwise
+    else
     {
-      for (size_t i = 0; i < m_size; i++)
-        m_data[i + 1] = static_cast<T&&>(m_data[i]);
+      // Copy the object before shifting, since 'value' may refer
+      //  to an element of this vector
+      T temp(value);
+
+      // Shift all elements to the right
+      Relocate(m_data + 1, m_data, m_size);
+
+      // Then, move the copy into owned memory
+      new (m_data) T(static_cast<T&&>(temp));
     }
 
-    // Then, copy object into owned memory
-    m_data[0] = value;
     m_size++;
 
     // and return a reference to it
@@ -174,27 +213,32 @@ export namespace Aurion
   {
     if (IsFull()) // Resize if full
     {
-      T* alloc = Resize();
+      IMemoryAllocator* owner = nullptr;
+      T* alloc = Resize(owner);
+
+      // Move the object into the new memory first, since 'value'
+      //  may refer to an element of this vector
+      new (alloc) T(static_cast<T&&>(value));
 
       // Then move all data to new memory to the adjusted position
-      for (size_t i = 0; i < m_capacity; i++)
-        alloc[i + 1] = static_cast<T&&>(m_data[i]);
+      Relocate(alloc + 1, m_data, m_size);
 
-      // Free the initial data
-      if (m_allocator) m_allocator->Free(m_data);
-      else delete[] m_data;
-
-      // Then update to new allocation
-      m_data = alloc;
+      // Free the initial data and update to the new allocation
+      Adopt(alloc, owner);
     }
-    else // Shift all elements otherwise
+    else
     {
-      for (size_t i = 0; i < m_size; i++)
-        m_data[i + 1] = static_cast<T&&>(m_data[i]);
+      // Move the object out before shifting, since 'value' may refer
+      //  to an element of this vector
+      T temp(static_cast<T&&>(value));
+
+      // Shift all elements to the right
+      Relocate(m_data + 1, m_data, m_size);
+
+      // Then, move the object into owned memory
+      new (m_data) T(static_cast<T&&>(temp));
     }
 
-    // Then, move object into owned memory
-    m_data[0] = static_cast<T&&>(value);
     m_size++;
 
     // and return a reference to it
@@ -202,28 +246,27 @@ export namespace Aurion
   }
 
   template <typename T>
-  T& Vector<T>::PushBack(T& value)
+  T& Vector<T>::PushBack(const T& value)
   {
     if (IsFull()) // Resize if full
     {
-      T* alloc = Resize();
+      IMemoryAllocator* owner = nullptr;
+      T* alloc = Resize(owner);
+
+      // Copy the object into the new memory first, since 'value'
+      //  may refer to an element of this vector
+      new (alloc + m_size) T(value);
 
       // Then move all data to new memory
-      for (size_t i = 0; i < m_capacity; i++)
-        alloc[i] = static_cast<T&&>(m_data[i]);
+      Relocate(alloc, m_data, m_size);
 
-      // Free the initial data
-      if (m_allocator) m_allocator->Free(m_data);
-      else delete[] m_data;
-
-      // Then update to new allocation
-      m_data = alloc;
+      // Free the initial data and update to the new allocation
+      Adopt(alloc, owner);
     }
+    else // Copy the object into owned memory
+      new (m_data + m_size) T(value);
 
-    // Copy object into owned memory
-    m_data[m_size++] = value;
-
-    return m_data[m_size - 1];
+    return m_data[m_size++];
   }
 
   template <typename T>
@@ -231,55 +274,65 @@ export namespace Aurion
   {
     if (IsFull()) // Resize if full
     {
-      T* alloc = Resize();
+      IMemoryAllocator* owner = nullptr;
+      T* alloc = Resize(owner);
+
+      // Move the object into the new memory first, since 'value'
+      //  may refer to an element of this vector
+      new (alloc + m_size) T(static_cast<T&&>(value));
 
       // Then move all data to new memory
-      for (size_t i = 0; i < m_capacity; i++)
-        alloc[i] = static_cast<T&&>(m_data[i]);
+      Relocate(alloc, m_data, m_size);
 
-      // Free the initial data
-      if (m_allocator) m_allocator->Free(m_data);
-      else delete[] m_data;
-
-      // Then update to new allocation
-      m_data = alloc;
+      // Free the initial data and update to the new allocation
+      Adopt(alloc, owner);
     }
+    else // Move the object into owned memory
+      new (m_data + m_size) T(static_cast<T&&>(value));
 
-    // Move the object into owned memory
-    m_data[m_size++] = static_cast<T&&>(value);
-
-    return m_data[m_size - 1];
+    return m_data[m_size++];
   }
 
   template <typename T>
   template <typename... Args>
   T& Vector<T>::Emplace(size_t index, Args&&... args)
   {
+    assert(index <= m_size && "Index Out of Bounds!");
+
     if (IsFull()) // Resize if full
     {
-      T* alloc = Resize();
+      IMemoryAllocator* owner = nullptr;
+      T* alloc = Resize(owner);
+
+      // Construct the new object in the new memory first, since 'args'
+      //  may refer to an element of this vector
+      new (alloc + index) T(static_cast<Args&&>(args)...);
 
       // Move all elements up to the desired insertion index
-      for (size_t i = 0; i < index; i++)
-        alloc[i] = static_cast<T&&>(m_data[i]);
+      Relocate(alloc, m_data, index);
 
-      // Shift remaining data right by one index
-      for (size_t i = index; i < m_size; i++)
-        alloc[i + 1] = static_cast<T&&>(m_data[i]);
+      // Shift elements to the right to make room
+      Relocate(alloc + index + 1, m_data + index, m_size - index);
 
-      // Free the initial data
-      if (m_allocator) m_allocator->Free(m_data);
-      else delete[] m_data;
+      // Free the initial data and update to the new allocation
+      Adopt(alloc, owner);
+    }
+    else
+    {
+      // Construct the new object before shifting, since 'args' may refer
+      //  to an element of this vector
+      T temp(static_cast<Args&&>(args)...);
 
-      // Then update to new allocation
-      m_data = alloc;
+      // Shift elements to the right to make room
+      Relocate(m_data + index + 1, m_data + index, m_size - index);
+
+      // Then, move the object into the insertion index
+      new (m_data + index) T(static_cast<T&&>(temp));
     }
 
-    // Construct the new object in-place at the insertion index
-    T* value = new(m_data + index) T(static_cast<Args&&>(args)...);
     m_size++;
 
-    return *value;
+    return m_data[index];
   }
 
   template <typename T>
@@ -288,23 +341,23 @@ export namespace Aurion
   {
     if (IsFull()) // Resize if full
     {
-      T* alloc = Resize();
+      IMemoryAllocator* owner = nullptr;
+      T* alloc = Resize(owner);
 
-      // Copy all elements into the new allocation
-      for (size_t i = 0; i < m_size; i++)
-        alloc[i] = static_cast<T&&>(m_data[i]);
+      // Construct the new object in the new memory first, since 'args'
+      //  may refer to an element of this vector
+      new (alloc + m_size) T(static_cast<Args&&>(args)...);
 
-      // Free the initial data
-      if (m_allocator) m_allocator->Free(m_data);
-      else delete[] m_data;
+      // Move all elements into the new allocation
+      Relocate(alloc, m_data, m_size);
 
-      // Then update to new allocation
-      m_data = alloc;
+      // Free the initial data and update to the new allocation
+      Adopt(alloc, owner);
     }
+    else // Construct the new object in-place at the end
+      new (m_data + m_size) T(static_cast<Args&&>(args)...);
 
-    // Construct the new object in-place at the end
-    T* value = new(m_data + (m_size++)) T(static_cast<Args&&>(args)...);
-    return *value;
+    return m_data[m_size++];
   }
 
   template <typename T>
@@ -315,12 +368,10 @@ export namespace Aurion
     // Destroy the first element
     m_data[0].~T();
 
-    // Shift each successive element left by one
-    for (size_t i = 0; i < m_size - 1; i++)
-      m_data[i] = static_cast<T&&>(m_data[i + 1]);
-
-    // Destroy the 'dead' last element
-    m_data[--m_size].~T();
+    // Shift each successive element left by one. The vacated
+    //  last slot is left as raw memory
+    Relocate(m_data, m_data + 1, m_size - 1);
+    --m_size;
   }
 
   template <typename T>
@@ -355,7 +406,7 @@ export namespace Aurion
   }
 
   template <typename T>
-  T* Vector<T>::Resize()
+  T* Vector<T>::Resize(IMemoryAllocator*& owner)
   {
     // TODO: Integrate logarithmic scaling. For now, default to 2x capacity in all cases
     const size_t new_capacity = m_capacity * 2;
@@ -367,12 +418,52 @@ export namespace Aurion
               : nullptr;
 
     // If the allocator didn't contain a large-enough block, or wasn't available,
-    //  fallback to heap allocation
+    //  fallback to heap allocation. The allocator can no longer be used once
+    //  this buffer is adopted
+    owner = alloc ? m_allocator : nullptr;
     if (!alloc)
-      alloc = new T[new_capacity];
+      alloc = static_cast<T*>(calloc(new_capacity, sizeof(T)));
 
     m_capacity = new_capacity;
 
     return alloc;
+  }
+
+  template <typename T>
+  void Vector<T>::Adopt(T* alloc, IMemoryAllocator* owner)
+  {
+    // Free the current data buffer
+    if (m_allocator) m_allocator->Free(m_data);
+    else free(m_data);
+
+    // Then update it to be the provided allocation.
+    // The allocator gets reassigned to either itself,
+    //  or nullptr when there is no more room.
+    m_data = alloc;
+    m_allocator = owner;
+  }
+
+  template <typename T>
+  void Vector<T>::Relocate(T* dst, T* src, size_t count)
+  {
+    // Trivial types can be moved bytewise, no constructors needed
+    if constexpr (std::is_trivially_copyable_v<T>)
+      memmove(dst, src, count * sizeof(T));
+    else if (dst < src) // Shifting left, so iterate forwards
+    {
+      for (size_t i = 0; i < count; i++)
+      {
+        new (dst + i) T(static_cast<T&&>(src[i]));
+        src[i].~T();
+      }
+    }
+    else if (dst > src) // Shifting right, so iterate backwards
+    {
+      for (size_t i = count; i > 0; i--)
+      {
+        new (dst + i - 1) T(static_cast<T&&>(src[i - 1]));
+        src[i - 1].~T();
+      }
+    }
   }
 }
