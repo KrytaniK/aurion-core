@@ -50,6 +50,13 @@ export namespace Aurion
     T& operator[](Key key);
     const T& operator[](Key key) const;
 
+    // Iterates live values in dense storage order, which is not insertion order.
+    // Lowercase by necessity: range-based for looks these names up
+    [[nodiscard]] T* begin();
+    [[nodiscard]] T* end();
+    [[nodiscard]] const T* begin() const;
+    [[nodiscard]] const T* end() const;
+
   private:
     Vector<Key> m_slots;
     Vector<T> m_data;
@@ -226,6 +233,30 @@ export namespace Aurion
       throw std::runtime_error("[SlotMap] Invalid Key");
 
     return m_data[m_slots[key.index].index];
+  }
+
+  template<typename T>
+  T* SlotMap<T>::begin()
+  {
+    return m_data.begin();
+  }
+
+  template<typename T>
+  T* SlotMap<T>::end()
+  {
+    return m_data.end();
+  }
+
+  template<typename T>
+  const T* SlotMap<T>::begin() const
+  {
+    return m_data.begin();
+  }
+
+  template<typename T>
+  const T* SlotMap<T>::end() const
+  {
+    return m_data.end();
   }
 
   template<typename T>

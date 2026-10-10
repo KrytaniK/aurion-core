@@ -61,6 +61,12 @@ export namespace Aurion
 
     void Clear();
 
+    // Lowercase by necessity: range-based for looks these names up
+    [[nodiscard]] T* begin();
+    [[nodiscard]] T* end();
+    [[nodiscard]] const T* begin() const;
+    [[nodiscard]] const T* end() const;
+
     T& operator[](size_t index);
     const T& operator[](size_t index) const;
 
@@ -396,6 +402,30 @@ export namespace Aurion
       m_data[m_size - 1 - i].~T();
 
     m_size = 0;
+  }
+
+  template <typename T>
+  T* Vector<T>::begin()
+  {
+    return m_data;
+  }
+
+  template <typename T>
+  T* Vector<T>::end()
+  {
+    return m_data + m_size;
+  }
+
+  template <typename T>
+  const T* Vector<T>::begin() const
+  {
+    return m_data;
+  }
+
+  template <typename T>
+  const T* Vector<T>::end() const
+  {
+    return m_data + m_size;
   }
 
   template <typename T>

@@ -31,6 +31,12 @@ export namespace Aurion
     [[nodiscard]] T& Front();
     [[nodiscard]] T& Back();
 
+    // Lowercase by necessity: range-based for looks these names up
+    [[nodiscard]] T* begin();
+    [[nodiscard]] T* end();
+    [[nodiscard]] const T* begin() const;
+    [[nodiscard]] const T* end() const;
+
     T& operator[](size_t index);
     const T& operator[](size_t index) const;
   };
@@ -59,6 +65,18 @@ export namespace Aurion
 
   template <typename T, size_t N>
   T& Array<T, N>::Back() { return data[N - 1]; }
+
+  template <typename T, size_t N>
+  T* Array<T, N>::begin() { return data; }
+
+  template <typename T, size_t N>
+  T* Array<T, N>::end() { return data + N; }
+
+  template <typename T, size_t N>
+  const T* Array<T, N>::begin() const { return data; }
+
+  template <typename T, size_t N>
+  const T* Array<T, N>::end() const { return data + N; }
 
   template <typename T, size_t N>
   T& Array<T, N>::operator[](size_t index) { return data[index]; }
