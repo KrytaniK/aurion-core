@@ -1,8 +1,9 @@
 module;
 
+#include <AurionExport.h>
 #include <cstdint>
 #include <cassert>
-#include <cstdlib>
+#include <stdexcept>
 
 export module Aurion.Memory:SlotMap;
 
@@ -13,17 +14,25 @@ import :Vector;
 export namespace Aurion
 {
   template<typename T>
-  class SlotMap
+  class AURION_API SlotMap
   {
   public:
-    union Key {
-      u64 value;
-      struct { u32 index = 0; u32 generation = 0; };
+    struct Key
+    {
+      u32 index = 0;
+      u32 generation = 0;
     };
 
   public:
     SlotMap();
     ~SlotMap() = default;
+
+    [[nodiscard]] size_t Size() const;
+    [[nodiscard]] size_t Capacity() const;
+    [[nodiscard]] bool IsEmpty() const;
+    [[nodiscard]] bool IsFull() const;
+
+    [[nodiscard]] bool Contains(Key key) const;
 
     Key Insert(const T& value);
     Key Insert(T&& value);
@@ -41,7 +50,6 @@ export namespace Aurion
     T& operator[](Key key);
     const T& operator[](Key key) const;
 
-
   private:
     Vector<Key> m_slots;
     Vector<T> m_data;
@@ -53,6 +61,36 @@ export namespace Aurion
   SlotMap<T>::SlotMap()
     : m_free_head(UINT32_MAX)
   {  }
+
+  template<typename T>
+  size_t SlotMap<T>::Size() const
+  {
+    return m_data.Size();
+  }
+
+  template<typename T>
+  size_t SlotMap<T>::Capacity() const
+  {
+    return m_data.Capacity();
+  }
+
+  template<typename T>
+  bool SlotMap<T>::IsEmpty() const
+  {
+    return m_data.IsEmpty();
+  }
+
+  template<typename T>
+  bool SlotMap<T>::IsFull() const
+  {
+    return m_data.IsFull();
+  }
+
+  template<typename T>
+  bool SlotMap<T>::Contains(Key key) const
+  {
+    return key.index < m_slots.Size() && m_slots[key.index].generation == key.generation;
+  }
 
   template<typename T>
   typename SlotMap<T>::Key SlotMap<T>::Insert(const T& value)
@@ -76,7 +114,7 @@ export namespace Aurion
     //  amortize growth
     if (m_free_head == UINT32_MAX)
     {
-      u32 insert_idx = m_slots.Size();
+      u32 insert_idx = static_cast<u32>(m_slots.Size());
 
       // Vectors will auto-resize when they are full
       m_slots.PushBack({ .index = insert_idx, .generation = 1 });
@@ -91,7 +129,7 @@ export namespace Aurion
     u32 slot_idx = m_free_head;
     Key& slot = m_slots.At(slot_idx);
 
-    // Copy the data item to the data vector
+    // Construct the value in-place
     m_data.EmplaceBack(static_cast<Args&&>(args)...);
 
     // And add a corresponding erase id to point back to this slot
@@ -101,7 +139,7 @@ export namespace Aurion
     m_free_head = slot.index;
 
     // And update the slot index and increment generation counter
-    slot.index = m_data.Size() - 1;
+    slot.index = static_cast<u32>(m_data.Size() - 1);
     ++slot.generation;
 
     return { .index = slot_idx, .generation = slot.generation };
@@ -166,7 +204,7 @@ export namespace Aurion
 
     // Then, reset the indices for all current slots
     for (size_t i = 0; i < m_slots.Size() - 1; i++)
-      m_slots[i].index = i + 1;
+      m_slots[i].index = static_cast<u32>(i + 1);
 
     // And force the last slot to point to an invalid slot
     m_slots[m_slots.Size() - 1].index = UINT32_MAX;
@@ -175,19 +213,19 @@ export namespace Aurion
   template<typename T>
   T& SlotMap<T>::At(Key key)
   {
-    Key& slot = m_slots.At(key.index);
-    assert(slot.generation == key.generation && "[SlotMap] Invalid Key");
+    if (!this->Contains(key))
+      throw std::runtime_error("[SlotMap] Invalid Key");
 
-    return m_data.At(slot.index);
+    return m_data[m_slots[key.index].index];
   }
 
   template<typename T>
   const T& SlotMap<T>::At(Key key) const
   {
-    const Key& slot = m_slots.At(key.index);
-    assert(slot.generation == key.generation && "[SlotMap] Invalid Key");
+    if (!this->Contains(key))
+      throw std::runtime_error("[SlotMap] Invalid Key");
 
-    return m_data.At(slot.index);
+    return m_data[m_slots[key.index].index];
   }
 
   template<typename T>

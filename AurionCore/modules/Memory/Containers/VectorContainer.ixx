@@ -6,6 +6,7 @@ module;
 #include <type_traits>
 #include <cstdlib>
 #include <algorithm>
+#include <stdexcept>
 
 export module Aurion.Memory:Vector;
 
@@ -148,14 +149,18 @@ export namespace Aurion
   template <typename T>
   T& Vector<T>::At(const size_t& index)
   {
-    assert(index < m_size && "Index Out of Bounds!");
+    if (index >= m_size)
+      throw std::runtime_error("[Vector] Index out of bounds!");
+
     return m_data[index];
   }
 
   template <typename T>
   const T& Vector<T>::At(const size_t& index) const
   {
-    assert(index < m_size && "Index Out of Bounds!");
+    if (index >= m_size)
+      throw std::runtime_error("[Vector] Index out of bounds!");
+
     return m_data[index];
   }
 
