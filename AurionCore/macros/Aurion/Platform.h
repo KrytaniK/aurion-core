@@ -4,6 +4,7 @@ namespace Aurion::Platform
 {
 #if defined(_WIN32)
   #define AURION_PLATFORM_WINDOWS
+  #define WIN32_LEAN_AND_MEAN
   inline constexpr bool Windows = true;
 #elif defined(__APPLE__) || defined(__MACH__)
   #include <TargetConditionals.h>
