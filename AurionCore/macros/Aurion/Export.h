@@ -1,6 +1,8 @@
 #pragma once
 
-#ifdef AURION_PLATFORM_WINDOWS
+#include "Platform.h"
+
+#if defined(_WIN32)
 	#define AURION_EXPORT __declspec(dllexport)
 	#define AURION_IMPORT __declspec(dllimport)
 #else
