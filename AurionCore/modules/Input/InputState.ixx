@@ -1,6 +1,6 @@
 module;
 
-#include <AurionExport.h>
+#include <Aurion/Export.h>
 
 export module Aurion.Input:State;
 

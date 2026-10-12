@@ -1,6 +1,6 @@
 module;
 
-#include <AurionExport.h>
+#include <Aurion/Export.h>
 #include <cstdint>
 
 export module Aurion.Types:Primitives;

@@ -1,7 +1,7 @@
 #ifdef AURION_PLATFORM_LINUX
 module;
 
-#include <AurionLog.h>
+#include <Aurion/Log.h>
 #include <cstring>
 
 #include <sys/fcntl.h>

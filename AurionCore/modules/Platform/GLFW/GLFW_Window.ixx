@@ -1,6 +1,6 @@
 module;
 
-#include <AurionExport.h>
+#include <Aurion/Export.h>
 #include <GLFW/glfw3.h>
 
 export module Aurion.GLFW:Window;

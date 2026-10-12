@@ -1,6 +1,6 @@
 module;
 
-#include <AurionExport.h>
+#include <Aurion/Export.h>
 #include <cstddef>
 
 export module Aurion.Memory:Interface;

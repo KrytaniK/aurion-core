@@ -1,6 +1,6 @@
 module;
 
-#include <AurionLog.h>
+#include <Aurion/Log.h>
 #include <GLFW/glfw3.h>
 
 module Aurion.GLFW;

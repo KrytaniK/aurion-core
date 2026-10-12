@@ -1,7 +1,7 @@
 module;
 
 #include <assert.h>
-#include <AurionExport.h>
+#include <Aurion/Export.h>
 #include <type_traits>
 #include <cstddef>
 

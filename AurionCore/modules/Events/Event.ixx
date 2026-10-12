@@ -1,6 +1,6 @@
 module;
 
-#include <AurionExport.h>
+#include <Aurion/Export.h>
 #include <time.h>
 
 export module Aurion.Events:Event;

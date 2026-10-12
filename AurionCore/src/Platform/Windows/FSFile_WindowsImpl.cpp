@@ -1,7 +1,7 @@
 module;
 #ifdef AURION_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
-#include <AurionLog.h>
+#include <Aurion/Log.h>
 #include <windows.h>
 
 #endif

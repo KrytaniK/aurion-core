@@ -1,6 +1,6 @@
 module;
 
-#include <AurionLog.h>
+#include <Aurion/Log.h>
 #include <memory>
 #include <cassert>
 #include <cstring>

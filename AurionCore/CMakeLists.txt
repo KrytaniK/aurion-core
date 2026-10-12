@@ -81,13 +81,6 @@ target_sources(aurion-core-common INTERFACE
     FILES ${AURION_CORE_HEADERS}
 )
 
-# Platform-Specific Preprocessor Definitions
-if (WIN32)
-    target_compile_definitions(aurion-core-common INTERFACE AURION_PLATFORM_WINDOWS)
-elseif (UNIX AND NOT APPLE)
-    target_compile_definitions(aurion-core-common INTERFACE AURION_PLATFORM_LINUX)
-endif()
-
 # ----- Shared Library Configuration: ----------------------------------------
 # ----------------------------------------------------------------------------
 

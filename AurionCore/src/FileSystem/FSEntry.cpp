@@ -1,6 +1,6 @@
 module;
 
-#include "AurionLog.h"
+#include "../../macros/Aurion/Log.h"
 #include <cstring>
 #include <cstdlib>
 
