@@ -7,3 +7,8 @@ export import :Interface;
 export import :LinearAllocator;
 export import :StackAllocator;
 export import :PoolAllocator;
+
+// Containers
+export import :Array;
+export import :Vector;
+export import :SlotMap;
