@@ -21,14 +21,18 @@ export namespace Aurion
 
   struct AURION_API Thread : public ThreadBase
   {
+    ThreadRoutine routine = nullptr;
+    void* arg = nullptr;
+    ThreadResult result = {};
+
     HANDLE handle;
     DWORD id;
   };
 
-  static unsigned __stdcall Thread_Trampoline(void* thread);
+  unsigned __stdcall Thread_Trampoline(void* desc);
 
-  static Thread CreateThread(const ThreadRoutine& routine, void* arg);
-  static void JoinThread(const Thread& thread);
+  void CreateThread(Thread& thread, const ThreadRoutine& routine, void* arg);
+  void JoinThread(Thread& thread);
 
 #endif
 }
