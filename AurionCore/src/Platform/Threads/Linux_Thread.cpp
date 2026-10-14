@@ -17,13 +17,13 @@ namespace Aurion
   void* Thread_Trampoline(void* thread)
   {
     Thread* t = static_cast<Thread*>(thread);
-    ThreadDescription& desc = t->m_desc;
 
-    t->m_status = ThreadStatus::Running;
-    ThreadResult result = desc.routine(desc.arg);
-    t->m_status = ThreadStatus::Waiting;
+    // TODO: Wait until thread reaches 'Created' State
 
-    return result;
+    // Start the thread routine
+    t->Start();
+
+    return nullptr;
   }
 
   Thread::Thread(ThreadRoutine routine, void* arg)
@@ -32,7 +32,7 @@ namespace Aurion
     if (!routine) return;
 
     if (pthread_create(&m_desc.handle, nullptr, &Thread_Trampoline, this))
-      m_status = ThreadStatus::Created; // NOTE: This might overwrite if the status is non 'uninitialized'
+      m_status = ThreadStatus::Created;
     else
       perror("[Linux Thread] Thread creation failed!");
   }
@@ -70,9 +70,16 @@ namespace Aurion
     if (m_status == ThreadStatus::Joined)
       return;
 
-    // If a thread object is getting destroyed, its returned
-    //  value should be discarded, if it hasn't joined already
     Thread::Join();
+  }
+
+  void Thread::Start()
+  {
+    // TODO: Thread Status checks
+
+    m_status = ThreadStatus::Running;
+    m_desc.routine(m_desc.arg);
+    m_status = ThreadStatus::Finished;
   }
 
   void Thread::Sleep(u32 ms)
@@ -82,14 +89,10 @@ namespace Aurion
     m_status = ThreadStatus::Running;
   }
 
-  ThreadResult Thread::Join()
+  void Thread::Join()
   {
-    ThreadResult result = nullptr;
-
-    if (pthread_join(m_desc.handle, &result) != 0)
+    if (pthread_join(m_desc.handle, nullptr) != 0)
       perror("[Linux Thread] Failed to join thread!");
-
-    return result;
   }
 
   void* Thread::GetNativeHandle()
@@ -99,6 +102,11 @@ namespace Aurion
       return nullptr;
 
     return &m_desc.handle;
+  }
+
+  const ThreadStatus& Thread::GetStatus()
+  {
+    return m_status;
   }
 }
 #endif

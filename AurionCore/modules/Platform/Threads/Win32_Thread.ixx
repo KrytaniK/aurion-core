@@ -17,22 +17,42 @@ export namespace Aurion
 {
 #if defined(AURION_PLATFORM_WINDOWS)
 
-  typedef unsigned __stdcall (*ThreadRoutine_Win32)(void* arg);
+  unsigned __stdcall Thread_Trampoline(void* thread);
 
-  struct AURION_API Thread : public ThreadBase
+  struct AURION_API ThreadDescription
   {
+    HANDLE handle = nullptr;
+    DWORD id = DWORD();
     ThreadRoutine routine = nullptr;
     void* arg = nullptr;
-    ThreadResult result = {};
-
-    HANDLE handle;
-    DWORD id;
   };
 
-  unsigned __stdcall Thread_Trampoline(void* desc);
+  class AURION_API Thread : public IThread
+  {
+  public:
+    explicit Thread(ThreadRoutine routine = nullptr, void* arg = nullptr);
+    ~Thread() override;
 
-  void CreateThread(Thread& thread, const ThreadRoutine& routine, void* arg);
-  void JoinThread(Thread& thread);
+    // Copying might introduce double-joins
+    Thread(const Thread&) = delete;
+    Thread& operator=(const Thread&) = delete;
+
+    Thread(Thread&&) noexcept;
+    Thread& operator=(Thread&&) noexcept;
+
+    void Start() override;
+
+    void Sleep(u32 ms) override;
+
+    void Join() override;
+
+    void* GetNativeHandle() override;
+    const ThreadStatus& GetStatus() override;
+
+  private:
+    ThreadDescription m_desc;
+    ThreadStatus m_status; // TODO: Make this Atomic
+  };
 
 #endif
 }

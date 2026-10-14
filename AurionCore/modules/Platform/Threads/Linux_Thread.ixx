@@ -17,6 +17,8 @@ export namespace Aurion
 {
 #if defined(AURION_PLATFORM_LINUX)
 
+  void* Thread_Trampoline(void* thread);
+
   struct AURION_API ThreadDescription
   {
     pthread_t handle = pthread_t();
@@ -26,9 +28,6 @@ export namespace Aurion
 
   class AURION_API Thread : public IThread
   {
-  public:
-    friend void* Thread_Trampoline(void* thread);
-
   public:
     explicit Thread(ThreadRoutine routine = nullptr, void* arg = nullptr);
     ~Thread() override;
@@ -40,15 +39,18 @@ export namespace Aurion
     Thread(Thread&&) noexcept;
     Thread& operator=(Thread&&) noexcept;
 
+    void Start() override;
+
     void Sleep(u32 ms) override;
 
-    ThreadResult Join() override;
+    void Join() override;
 
     void* GetNativeHandle() override;
+    const ThreadStatus& GetStatus() override;
 
   private:
     ThreadDescription m_desc;
-    ThreadStatus m_status;
+    ThreadStatus m_status; // TODO: Make this Atomic
   };
 
 #endif
